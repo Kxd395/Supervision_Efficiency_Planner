@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Scenario, ComputedMetrics, GlobalAssumptions, SupervisionRules } from '../types';
+import type { Scenario, ComputedMetrics } from '../types';
 import { ScenarioCard } from './ScenarioCard';
 
 interface Props {
