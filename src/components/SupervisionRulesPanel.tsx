@@ -59,7 +59,7 @@ export const SupervisionRulesPanel: React.FC<Props> = ({ rules, onChange }) => {
 
                 {/* Tiered Section */}
                 <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-6">
                         <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tiered Model Config</h4>
 
                         {/* Tab Switcher */}
@@ -67,8 +67,8 @@ export const SupervisionRulesPanel: React.FC<Props> = ({ rules, onChange }) => {
                             <button
                                 onClick={() => setActiveTab('B')}
                                 className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${activeTab === 'B'
-                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                                     }`}
                             >
                                 Scenario B
@@ -76,8 +76,8 @@ export const SupervisionRulesPanel: React.FC<Props> = ({ rules, onChange }) => {
                             <button
                                 onClick={() => setActiveTab('C')}
                                 className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${activeTab === 'C'
-                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                                     }`}
                             >
                                 Scenario C
@@ -85,58 +85,78 @@ export const SupervisionRulesPanel: React.FC<Props> = ({ rules, onChange }) => {
                         </div>
                     </div>
 
-                    <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50">
-                        <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+
+                        {/* LEFT COLUMN: DIRECTOR */}
+                        <div className="space-y-4">
+                            <h3 className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider border-b border-indigo-100 dark:border-indigo-900/50 pb-2 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                    <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+                                </svg>
+                                Director Load (Retained)
+                            </h3>
+
                             <SteppedNumberInput
-                                label="Sup. Retained Indiv."
+                                label="Retained 1:1"
                                 value={activeConfig.supervisorIndivPerStaff}
                                 onChange={(v) => handleTieredChange('supervisorIndivPerStaff', v)}
                                 step={0.5}
                                 suffix="hrs/staff"
+                                className="bg-white dark:bg-slate-900 rounded-lg p-2 shadow-sm border border-slate-100 dark:border-slate-700"
                             />
                             <SteppedNumberInput
-                                label="Sup. Oversight of CRSS"
-                                value={activeConfig.crssSupervisionHrs}
-                                onChange={(v) => handleTieredChange('crssSupervisionHrs', v)}
-                                step={0.5}
-                                suffix="hrs/mo"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <SteppedNumberInput
-                                label="CRSS Delegated Indiv."
-                                value={activeConfig.crssIndivPerStaff}
-                                onChange={(v) => handleTieredChange('crssIndivPerStaff', v)}
-                                step={0.5}
-                                suffix="hrs/staff"
-                            />
-                            <SteppedNumberInput
-                                label="Sup. Group Only"
+                                label="Director Groups"
                                 value={activeConfig.supervisorGroupOnly}
                                 onChange={(v) => handleTieredChange('supervisorGroupOnly', v)}
                                 step={0.5}
                                 suffix="hrs/mo"
+                                className="bg-white dark:bg-slate-900 rounded-lg p-2 shadow-sm border border-slate-100 dark:border-slate-700"
+                            />
+                            <SteppedNumberInput
+                                label="Oversight of CRSS"
+                                value={activeConfig.crssSupervisionHrs}
+                                onChange={(v) => handleTieredChange('crssSupervisionHrs', v)}
+                                step={0.5}
+                                suffix="hrs/mo"
+                                className="bg-white dark:bg-slate-900 rounded-lg p-2 shadow-sm border border-slate-100 dark:border-slate-700"
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        {/* RIGHT COLUMN: CRSS */}
+                        <div className="space-y-4">
+                            <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider border-b border-emerald-100 dark:border-emerald-900/50 pb-2 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                    <path d="M7 8a3 3 0 100-6 3 3 0 000 6zM14.5 9a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM1.615 16.428a1.224 1.224 0 01-.569-1.175 6.002 6.002 0 0111.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 017 18a9.953 9.953 0 01-5.385-1.572zM14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 00-1.588-3.755 4.502 4.502 0 015.874 2.636.818.818 0 01-.36.98A7.465 7.465 0 0114.5 16z" />
+                                </svg>
+                                CRSS Load (Delegated)
+                            </h3>
 
                             <SteppedNumberInput
-                                label="CRSS Group Only"
+                                label="Delegated 1:1"
+                                value={activeConfig.crssIndivPerStaff}
+                                onChange={(v) => handleTieredChange('crssIndivPerStaff', v)}
+                                step={0.5}
+                                suffix="hrs/staff"
+                                className="bg-white dark:bg-slate-900 rounded-lg p-2 shadow-sm border border-slate-100 dark:border-slate-700"
+                            />
+                            <SteppedNumberInput
+                                label="CRSS Groups"
                                 value={activeConfig.groupCrssOnly}
                                 onChange={(v) => handleTieredChange('groupCrssOnly', v)}
                                 step={0.5}
                                 suffix="hrs/mo"
+                                className="bg-white dark:bg-slate-900 rounded-lg p-2 shadow-sm border border-slate-100 dark:border-slate-700"
                             />
                             <SteppedNumberInput
-                                label="Co-Facilitated Group"
+                                label="Co-Facilitated Groups"
                                 value={activeConfig.groupCoFacilitated}
                                 onChange={(v) => handleTieredChange('groupCoFacilitated', v)}
                                 step={0.5}
                                 suffix="hrs/mo"
+                                className="bg-white dark:bg-slate-900 rounded-lg p-2 shadow-sm border border-slate-100 dark:border-slate-700"
                             />
                         </div>
+
                     </div>
                 </div>
 

@@ -94,24 +94,22 @@ export const AssumptionsDeck: React.FC<Props> = ({
                 </button>
             </div>
 
-            <div className="p-4 grid grid-cols-1 lg:grid-cols-[1fr_1fr_1.4fr] gap-4">
-                {/* Column 1: Compensation (Global) */}
-                <div className="lg:col-span-1">
+            <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                {/* === LEFT COLUMN: FINANCIALS & DEMAND === */}
+                <div className="space-y-6">
+                    {/* 1. Compensation (Top Left) */}
                     {renderGlobal()}
-                </div>
 
-                {/* Column 2: Demand & Utilization */}
-                <div className="lg:col-span-1">
+                    {/* 2. Demand & Utilization (Moved to Bottom Left) */}
                     {renderDemand()}
                 </div>
 
-                {/* Column 3: Supervision Rules (1.4fr equivalent via col-span if using grid-cols-3.4? No, let's stick to standard grid and maybe make it wider if needed, or just standard 3 col) */}
-                {/* Prompt asked for 1fr 1fr 1.4fr. Tailwind grid is usually equal width. 
-                    Let's use flex or custom grid template. 
-                    Actually, let's stick to simple grid-cols-3 for now as it's cleaner, 
-                    or use a custom style for the grid. */}
-                <div className="lg:col-span-1 flex flex-col gap-4">
+                {/* === RIGHT COLUMN: RULES & RISK === */}
+                <div className="space-y-6">
+                    {/* 3. Supervision Rules (Top Right) */}
                     {renderRules()}
+
+                    {/* 4. HR & Risk Factors (Bottom Right) */}
                     {renderHR()}
                 </div>
             </div>

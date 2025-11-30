@@ -13,59 +13,59 @@ export const GlobalAssumptionsPanel: React.FC<Props> = ({ assumptions, onChange 
     };
 
     return (
-        <Card className="border-t-4 border-indigo-500 dark:border-indigo-400">
+        <Card className="border-t-4 border-indigo-500 dark:border-indigo-400 p-6 space-y-6">
             <SectionHeader
                 title="Compensation Assumptions"
                 subtitle="These defaults apply to all scenarios unless explicitly overridden."
             />
 
-            <div className="flex flex-col gap-6">
-                {/* Wages */}
-                <div className="space-y-5">
-                    <h3 className="font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-1 text-xs uppercase tracking-wider">Base Wages (Hourly)</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                        <SteppedNumberInput
-                            label="CRS Wage"
-                            value={assumptions.crsBaseHourly}
-                            onChange={(val) => onChange({ ...assumptions, crsBaseHourly: val })}
-                            step={0.5}
-                            prefix="$"
-                            helpContent={{
-                                description: "Hourly base rate for Frontline Certified Recovery Specialists.",
-                                impact: "Determines the 'Backfill Cost' when a CRS is promoted to CRSS."
-                            }}
-                        />
-                        <SteppedNumberInput
-                            label="CRSS Wage"
-                            value={assumptions.crssBaseHourly}
-                            onChange={(val) => onChange({ ...assumptions, crssBaseHourly: val })}
-                            step={0.5}
-                            prefix="$"
-                            helpContent={{
-                                description: "Hourly base rate for the Lead/Supervisor Peer.",
-                                impact: "Determines the 'Payroll Increase' in Scenario B & C."
-                            }}
-                        />
-                        <SteppedNumberInput
-                            label="Supervisor Wage"
-                            value={assumptions.supervisorBaseHourly}
-                            onChange={(val) => onChange({ ...assumptions, supervisorBaseHourly: val })}
-                            step={0.5}
-                            prefix="$"
-                        />
-                    </div>
+            {/* SECTION 1: WAGES (Full Width Row) */}
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                <h3 className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider mb-3">Base Wages (Hourly)</h3>
+                <div className="grid grid-cols-3 gap-4">
+                    <SteppedNumberInput
+                        label="CRS Wage"
+                        value={assumptions.crsBaseHourly}
+                        onChange={(val) => onChange({ ...assumptions, crsBaseHourly: val })}
+                        step={0.5}
+                        prefix="$"
+                        helpContent={{
+                            description: "Hourly base rate for Frontline Certified Recovery Specialists.",
+                            impact: "Determines the 'Backfill Cost' when a CRS is promoted to CRSS."
+                        }}
+                    />
+                    <SteppedNumberInput
+                        label="CRSS Wage"
+                        value={assumptions.crssBaseHourly}
+                        onChange={(val) => onChange({ ...assumptions, crssBaseHourly: val })}
+                        step={0.5}
+                        prefix="$"
+                        helpContent={{
+                            description: "Hourly base rate for the Lead/Supervisor Peer.",
+                            impact: "Determines the 'Payroll Increase' in Scenario B & C."
+                        }}
+                    />
+                    <SteppedNumberInput
+                        label="Sup Wage"
+                        value={assumptions.supervisorBaseHourly}
+                        onChange={(val) => onChange({ ...assumptions, supervisorBaseHourly: val })}
+                        step={0.5}
+                        prefix="$"
+                    />
                 </div>
+            </div>
 
-                {/* Load & FTE */}
-                <div className="space-y-5">
-                    <h3 className="font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-1 text-xs uppercase tracking-wider">Burden & Hours</h3>
-                    {/* Burden Rate */}
-                    <div>
-                        <div className="flex justify-between items-center mb-2">
-                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Fringe Benefits</h4>
-                        </div>
+            {/* SECTION 2: THE SPLIT (Compact Layout) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* LEFT: BURDEN & HOURS */}
+                <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 pb-1">
+                        Burden & Hours
+                    </h3>
+                    <div className="space-y-4">
                         <SteppedNumberInput
-                            label="Burden Rate"
+                            label="Fringe Benefits (%)"
                             value={Math.round(assumptions.benefitLoad * 100)}
                             onChange={(val) => onChange({ ...assumptions, benefitLoad: val / 100 })}
                             step={1}
@@ -75,40 +75,50 @@ export const GlobalAssumptionsPanel: React.FC<Props> = ({ assumptions, onChange 
                                 impact: "Multiplies ALL base wages. $1.00 becomes $1.35."
                             }}
                         />
-                    </div>
-                    <SteppedNumberInput
-                        label="FTE Hours / Month"
-                        value={assumptions.fteHoursPerMonth}
-                        onChange={(v) => handleChange('fteHoursPerMonth', v)}
-                        suffix="hrs"
-                    />
-                </div>
-
-                {/* Revenue Potential */}
-                <div className="space-y-5">
-                    <h3 className="font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-1 text-xs uppercase tracking-wider">Revenue Factors</h3>
-                    <SteppedNumberInput
-                        label="Supervisor Billable Rate"
-                        value={assumptions.supervisorBillableRate}
-                        onChange={(v) => handleChange('supervisorBillableRate', v)}
-                        prefix="$"
-                    />
-                    <SteppedNumberInput
-                        label="Target Utilization"
-                        value={assumptions.utilizationPercent * 100}
-                        onChange={(v) => handleChange('utilizationPercent', v / 100)}
-                        suffix="%"
-                        step={5}
-                    />
-                    <div className="pt-2 mt-2">
-                        <TextInput
-                            label="Reinvestment Task"
-                            value={assumptions.reinvestmentTask || "Outpatient Counseling"}
-                            onChange={(v) => onChange({ ...assumptions, reinvestmentTask: v })}
-                            placeholder="e.g. Outpatient Counseling"
+                        <SteppedNumberInput
+                            label="FTE Hours/Mo"
+                            value={assumptions.fteHoursPerMonth}
+                            onChange={(v) => handleChange('fteHoursPerMonth', v)}
+                            suffix="hrs"
                         />
                     </div>
                 </div>
+
+                {/* RIGHT: REVENUE FACTORS */}
+                <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 pb-1">
+                        Revenue Factors
+                    </h3>
+                    <div className="space-y-4">
+                        <SteppedNumberInput
+                            label="Billable Rate ($)"
+                            value={assumptions.supervisorBillableRate}
+                            onChange={(v) => handleChange('supervisorBillableRate', v)}
+                            prefix="$"
+                        />
+                        <SteppedNumberInput
+                            label="Utilization (%)"
+                            value={assumptions.utilizationPercent * 100}
+                            onChange={(v) => handleChange('utilizationPercent', v / 100)}
+                            suffix="%"
+                            step={5}
+                        />
+                    </div>
+                </div>
+
+            </div>
+
+            {/* SECTION 3: REINVESTMENT TASK (Full Width) */}
+            <div>
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 pb-1 mb-3">
+                    Reinvestment Task
+                </h3>
+                <TextInput
+                    label=""
+                    value={assumptions.reinvestmentTask || "Outpatient Counseling"}
+                    onChange={(v) => onChange({ ...assumptions, reinvestmentTask: v })}
+                    placeholder="e.g. Outpatient Counseling"
+                />
             </div>
         </Card>
     );
