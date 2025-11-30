@@ -75,9 +75,26 @@ export const ScenarioCard: React.FC<Props> = ({
                 </div>
             </div>
 
-            {/* Value Buckets */}
             <div className="flex flex-col items-start h-full justify-start">
                 <h4 className="font-semibold text-slate-700 dark:text-slate-200 text-xs uppercase tracking-wider mb-2 border-b border-slate-100 dark:border-slate-800 pb-1 w-full">Value Generated</h4>
+
+                {/* Grant Shield Badge */}
+                {metrics.grantSavings > 0 && (
+                    <div className="mb-3 w-full p-2 bg-emerald-50/50 dark:bg-emerald-900/10 rounded border border-emerald-100 dark:border-emerald-800/30 flex justify-between items-center">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-lg">🛡️</span>
+                            <div>
+                                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Grant Shield</div>
+                                <div className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                                    {metrics.grantFTEsUsed} FTEs covered
+                                </div>
+                            </div>
+                        </div>
+                        <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                            -{formatCurrency(metrics.grantSavings)}
+                        </div>
+                    </div>
+                )}
 
 
                 {/* Capacity Reinvestment Block */}
@@ -102,9 +119,18 @@ export const ScenarioCard: React.FC<Props> = ({
                                     🎯 Leadership Capacity Restored
                                 </h5>
                                 {metrics.realizedRevenue > 0 && (
-                                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded">
-                                        +{formatCurrency(metrics.realizedRevenue)} Gen. Revenue
-                                    </span>
+                                    <div className="flex gap-1">
+                                        {metrics.supervisorRevenue > 0 && (
+                                            <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800" title="Supervisor Repurposing Revenue">
+                                                +{formatCurrency(metrics.supervisorRevenue)} Sup.
+                                            </span>
+                                        )}
+                                        {metrics.peerRevenue > 0 && (
+                                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800" title="Peer Billable Revenue (H0038)">
+                                                +{formatCurrency(metrics.peerRevenue)} Peer
+                                            </span>
+                                        )}
+                                    </div>
                                 )}
                             </div>
 

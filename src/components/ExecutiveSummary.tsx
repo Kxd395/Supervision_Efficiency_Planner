@@ -9,7 +9,8 @@ import {
     ReferenceLine,
     ResponsiveContainer,
     Cell,
-    LabelList
+    LabelList,
+    Legend
 } from 'recharts';
 import type { ComputedMetrics } from '../types';
 import { Card, Badge } from './Shared';
@@ -47,6 +48,27 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
             name: 'Scenario C',
             value: metricsC.netMonthlySteadyState,
             label: 'Scenario C'
+        }
+    ];
+
+    const revenueData = [
+        {
+            name: 'Scenario A',
+            supervisor: 0,
+            peer: 0,
+            total: 0
+        },
+        {
+            name: 'Scenario B',
+            supervisor: metricsB.supervisorRevenue,
+            peer: metricsB.peerRevenue,
+            total: metricsB.realizedRevenue
+        },
+        {
+            name: 'Scenario C',
+            supervisor: metricsC.supervisorRevenue,
+            peer: metricsC.peerRevenue,
+            total: metricsC.realizedRevenue
         }
     ];
 
@@ -179,6 +201,44 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
                                     ))}
                                     <LabelList content={renderCustomLabel} />
                                 </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    {/* Revenue Composition Chart */}
+                    <div className="mb-6 p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 flex flex-col gap-4 h-96">
+                        <h4 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2">Revenue Composition Analysis</h4>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                                data={revenueData}
+                                margin={{
+                                    top: 20,
+                                    right: 30,
+                                    left: 20,
+                                    bottom: 40,
+                                }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.2} />
+                                <XAxis
+                                    dataKey="name"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    tickFormatter={(value) => `$${value}`}
+                                    stroke="#94a3b8"
+                                    fontSize={12}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: 'transparent' }}
+                                    formatter={(value: number) => formatMoney(value)}
+                                    contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#fff', borderRadius: '8px' }}
+                                />
+                                <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                                <Bar dataKey="supervisor" stackId="a" name="Supervisor Repurposing" fill="#6366f1" radius={[0, 0, 4, 4]} />
+                                <Bar dataKey="peer" stackId="a" name="Peer Billing" fill="#10b981" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
