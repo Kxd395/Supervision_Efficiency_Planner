@@ -154,7 +154,6 @@ export function calculateCompliance(
 export function calculateBillableImpact(
     freedHours: number,
     global: GlobalAssumptions,
-    demand: DemandAssumptions,
     scenario: Scenario
 ): { realizedHours: number; realizedRevenue: number } {
     const billableRate = scenario.overrides?.billableRate ?? global.supervisorBillableRate;

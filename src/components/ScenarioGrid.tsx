@@ -23,9 +23,7 @@ export const ScenarioGrid: React.FC<Props> = ({ scenarios, metrics, globalAssump
                 <ScenarioCard
                     scenario={scenarios.A}
                     metrics={metrics.A}
-                    globalDefaults={globalAssumptions}
-                    rules={rules}
-                    onChange={(s) => onScenarioChange("A", s)}
+                    onUpdate={(s) => onScenarioChange("A", s)}
                     isBaseline
                 />
 
@@ -33,18 +31,14 @@ export const ScenarioGrid: React.FC<Props> = ({ scenarios, metrics, globalAssump
                 <ScenarioCard
                     scenario={scenarios.B}
                     metrics={metrics.B}
-                    globalDefaults={globalAssumptions}
-                    rules={rules}
-                    onChange={(s) => onScenarioChange("B", s)}
+                    onUpdate={(s) => onScenarioChange("B", s)}
                 />
 
                 {/* Scenario C: Tiered */}
                 <ScenarioCard
                     scenario={scenarios.C}
                     metrics={metrics.C}
-                    globalDefaults={globalAssumptions}
-                    rules={rules}
-                    onChange={(s) => onScenarioChange("C", s)}
+                    onUpdate={(s) => onScenarioChange("C", s)}
                 />
             </div>
         </section>
