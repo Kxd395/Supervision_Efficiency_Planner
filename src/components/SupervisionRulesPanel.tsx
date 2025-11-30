@@ -87,13 +87,13 @@ export const SupervisionRulesPanel: React.FC<Props> = ({ rules, onChange }) => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
 
-                        {/* LEFT COLUMN: DIRECTOR */}
+                        {/* LEFT COLUMN: CLINICAL SUPERVISOR */}
                         <div className="space-y-4">
                             <h3 className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider border-b border-indigo-100 dark:border-indigo-900/50 pb-2 flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                                     <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
                                 </svg>
-                                Director Load (Retained)
+                                Clinical Supervisor Load (Retained)
                             </h3>
 
                             <SteppedNumberInput
@@ -105,7 +105,7 @@ export const SupervisionRulesPanel: React.FC<Props> = ({ rules, onChange }) => {
                                 className="bg-white dark:bg-slate-900 rounded-lg p-2 shadow-sm border border-slate-100 dark:border-slate-700"
                             />
                             <SteppedNumberInput
-                                label="Director Groups"
+                                label="Clinical Supervisor Groups"
                                 value={activeConfig.supervisorGroupOnly}
                                 onChange={(v) => handleTieredChange('supervisorGroupOnly', v)}
                                 step={0.5}

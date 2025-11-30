@@ -117,11 +117,11 @@ export const HelpModal: React.FC<Props> = ({ isOpen, onClose }) => {
                         </p>
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                                <h4 className="font-bold text-indigo-900 dark:text-indigo-100 mb-2">Director Load (Retained)</h4>
-                                <p className="text-xs text-indigo-700 dark:text-indigo-300 mb-2">High-cost hours the Director keeps</p>
+                                <h4 className="font-bold text-indigo-900 dark:text-indigo-100 mb-2">Clinical Supervisor Load (Retained)</h4>
+                                <p className="text-xs text-indigo-700 dark:text-indigo-300 mb-2">High-cost hours the Clinical Supervisor keeps</p>
                                 <ul className="text-sm text-indigo-600 dark:text-indigo-200 space-y-1">
                                     <li>• Retained 1:1 supervision</li>
-                                    <li>• Director-only groups</li>
+                                    <li>• Clinical Supervisor-only groups</li>
                                     <li>• CRSS oversight time</li>
                                 </ul>
                             </div>
