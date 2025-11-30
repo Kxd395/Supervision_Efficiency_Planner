@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { Scenario, ComputedMetrics, GlobalAssumptions, SupervisionRules } from '../types';
 import { Card, NumberInput, Badge, HelpTooltip, SteppedNumberInput } from './Shared';
 import { MathExplainer } from './MathExplainer';
+import { usePersistedState } from '../hooks/usePersistedState';
 
 interface Props {
     scenario: Scenario;
@@ -20,7 +21,7 @@ export const ScenarioCard: React.FC<Props> = ({
     onChange,
     isBaseline = false
 }) => {
-    const [showOverrides, setShowOverrides] = useState(false);
+    const [showOverrides, setShowOverrides] = usePersistedState<boolean>('sep_showAdvancedSettings', false);
 
     const handleChange = (field: keyof Scenario, value: any) => {
         onChange({ ...scenario, [field]: value });
