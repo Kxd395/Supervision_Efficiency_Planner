@@ -32,7 +32,7 @@ export const ScenarioCard: React.FC<Props> = ({
     const fmt = (n: number) => Math.round(n).toLocaleString();
 
     return (
-        <Card className={`flex flex-col h-full border-t-4 ${isBaseline ? 'border-slate-500' : 'border-indigo-500'} space-y-6`}>
+        <Card className={`scenario-card flex flex-col h-full border-t-4 ${isBaseline ? 'border-slate-500' : 'border-indigo-500'} space-y-6`}>
 
             {/* 1. HEADER */}
             <div className="flex justify-between items-start">

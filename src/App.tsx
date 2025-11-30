@@ -160,13 +160,17 @@ const App: React.FC = () => {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => window.print()}
-              className="p-2 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+              onClick={() => {
+                setIsSummaryOpen(true); // Auto-expand summary
+                setTimeout(() => window.print(), 100);
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors no-print border border-slate-700 text-sm font-medium"
               title="Print / Save as PDF"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
+              <span>Export Report</span>
             </button>
             <button
               onClick={() => setIsHelpOpen(true)}
@@ -233,7 +237,7 @@ const App: React.FC = () => {
         </div>
 
         {/* 1. Executive Summary */}
-        <section className="no-print">
+        <section className="executive-summary-container">
           <ExecutiveSummary
             metricsA={metrics.A}
             metricsB={metrics.B}

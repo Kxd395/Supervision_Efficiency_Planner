@@ -22,62 +22,111 @@ input[type=number] {
   /* Firefox */
 }
 
-/* Print Styles */
+/* --- PRINT STYLESHEET (The "Board Report" View) --- */
 @media print {
-  @page {
-    margin: 0.5in;
-    size: landscape;
+
+  /* 1. RESET THEME: Force Professional White Paper Look */
+  :root {
+    --tw-bg-opacity: 1;
+    background-color: white !important;
+    color: black !important;
   }
 
   body {
-    background: white !important;
-    color: #1e293b !important; /* slate-800 */
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    font-size: 11pt;
+    /* slightly smaller for density */
+    background-color: white !important;
   }
 
-  /* Hide UI elements not needed for report */
-  header button, /* Theme toggle, etc */
+  /* 2. HIDE UI CLUTTER (Interactive elements serve no purpose on paper) */
+  nav,
+  /* The Header */
+  button,
+  /* All Buttons */
+  .toggle-checkbox,
+  /* Toggles */
+  input[type="range"],
+  /* Sliders */
+  input[type="checkbox"],
+  .tooltip-trigger,
+  /* Helper Icons */
   .no-print,
-  button, /* Hide all interactive buttons */
-  input[type="checkbox"], /* Hide toggles */
-  .group-hover\:block /* Hide tooltips */
-  {
+  /* Specific utility class */
+  .sensitivity-bar,
+  /* The Floating Footer/Header bar */
+  .assumptions-deck
+
+  /* OPTIONAL: Hide the inputs to focus on results? */
+    {
     display: none !important;
   }
 
-  /* Layout Adjustments */
-  #root {
-    width: 100%;
-    max-width: none;
+  /* 3. LAYOUT FIXES */
+  .max-w-7xl {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
-  /* Force Light Mode Colors for Containers */
-  .dark\:bg-slate-950,
-  .dark\:bg-slate-900,
-  .dark\:bg-slate-800,
+  /* Remove dark card backgrounds, replace with simple borders */
+  .bg-slate-900,
   .bg-slate-950,
-  .bg-slate-900 {
-    background-color: white !important;
-    border-color: #e2e8f0 !important; /* slate-200 */
-    color: #1e293b !important;
+  .bg-slate-800,
+  .bg-slate-50 {
+    background-color: transparent !important;
+    border: 1px solid #cbd5e1 !important;
+    /* slate-300 */
+    color: black !important;
+    box-shadow: none !important;
   }
 
-  /* Preserve Semantic Colors (Emerald/Rose/Indigo) */
-  .text-emerald-400, .dark\:text-emerald-400 { color: #059669 !important; } /* emerald-600 */
-  .text-rose-400, .dark\:text-rose-400 { color: #e11d48 !important; } /* rose-600 */
-  .text-indigo-400, .dark\:text-indigo-400 { color: #4f46e5 !important; } /* indigo-600 */
-  
-  .bg-emerald-950\/30, .dark\:bg-emerald-950\/30 { background-color: #ecfdf5 !important; border-color: #10b981 !important; } /* emerald-50 */
-  .bg-rose-950\/20, .dark\:bg-rose-950\/20 { background-color: #fff1f2 !important; border-color: #f43f5e !important; } /* rose-50 */
-
-  /* Ensure Cards have borders */
-  .border-slate-800 {
-    border-color: #cbd5e1 !important; /* slate-300 */
+  /* Fix Text Colors for contrast on white paper */
+  .text-white,
+  .text-slate-100,
+  .text-slate-200,
+  .text-indigo-100 {
+    color: #0f172a !important;
+    /* slate-900 */
   }
 
-  /* Hide scrollbars */
-  ::-webkit-scrollbar {
-    display: none;
+  .text-slate-400,
+  .text-slate-500 {
+    color: #475569 !important;
+    /* slate-600 */
+  }
+
+  /* 4. CHART & COLOR PRESERVATION */
+  /* Ensure the logic colors (Green/Red/Blue) print accurately */
+  .bg-indigo-500 {
+    background-color: #6366f1 !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .bg-emerald-500 {
+    background-color: #10b981 !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .bg-rose-500 {
+    background-color: #f43f5e !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* 5. PAGE BREAKS */
+  /* Force Executive Summary to be the cover page */
+  .executive-summary-container {
+    break-after: always;
+    page-break-after: always;
+    margin-bottom: 2rem;
+  }
+
+  /* Keep Scenario Cards from being sliced in half */
+  .scenario-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #94a3b8 !important;
+    margin-bottom: 1rem;
   }
 }
