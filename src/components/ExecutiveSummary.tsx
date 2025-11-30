@@ -252,8 +252,8 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
                                 <tr>
                                     <th className="px-4 py-3">Metric</th>
                                     <th className="px-4 py-3">Scenario A (Current)</th>
-                                    <th className="px-4 py-3">Scenario B (Hire CRS)</th>
-                                    <th className="px-4 py-3">Scenario C (Promote)</th>
+                                    <th className="px-4 py-3">Scenario B (Restructure)</th>
+                                    <th className="px-4 py-3">Scenario C (Expansion)</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-600">
@@ -266,6 +266,36 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
                                     </td>
                                     <td className={`px-4 py-3 font-bold ${metricsC.netAnnualSteadyState >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                         {formatDelta(metricsC.netAnnualSteadyState)}
+                                    </td>
+                                </tr>
+
+                                {/* Monthly Hard Cash (The CFO Number) */}
+                                <tr className="bg-slate-50 dark:bg-slate-900/50 border-b dark:border-slate-700">
+                                    <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">
+                                        Monthly Net Cash (Hard)
+                                        <span className="block text-[10px] text-slate-400 font-normal">Revenue - Payroll + Grant</span>
+                                    </td>
+                                    <td className="px-4 py-3 font-mono text-slate-400 dark:text-slate-500">-</td>
+                                    <td className={`px-4 py-3 font-mono ${metricsB.netMonthlySteadyStateHard >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                        {formatDelta(metricsB.netMonthlySteadyStateHard)}
+                                    </td>
+                                    <td className={`px-4 py-3 font-mono ${metricsC.netMonthlySteadyStateHard >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                        {formatDelta(metricsC.netMonthlySteadyStateHard)}
+                                    </td>
+                                </tr>
+
+                                {/* Monthly Soft Value (The Ops Number) */}
+                                <tr className="bg-white dark:bg-slate-800 border-b dark:border-slate-700">
+                                    <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">
+                                        Monthly Operational Value (Soft)
+                                        <span className="block text-[10px] text-slate-400 font-normal">Retention + Efficiency</span>
+                                    </td>
+                                    <td className="px-4 py-3 font-mono text-slate-400 dark:text-slate-500">-</td>
+                                    <td className="px-4 py-3 font-mono text-emerald-600 dark:text-emerald-400">
+                                        +{formatMoney(metricsB.netMonthlySteadyStateSoft)}
+                                    </td>
+                                    <td className="px-4 py-3 font-mono text-emerald-600 dark:text-emerald-400">
+                                        +{formatMoney(metricsC.netMonthlySteadyStateSoft)}
                                     </td>
                                 </tr>
 
