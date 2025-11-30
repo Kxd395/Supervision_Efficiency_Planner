@@ -12,7 +12,7 @@ import {
     LabelList,
     Legend
 } from 'recharts';
-import type { ComputedMetrics } from '../types';
+import type { ComputedMetrics, EnabledFactors } from '../types';
 import { Card, Badge } from './Shared';
 
 interface Props {
@@ -21,9 +21,10 @@ interface Props {
     metricsC: ComputedMetrics;
     isOpen: boolean;
     onToggle: () => void;
+    enabledFactors: EnabledFactors;
 }
 
-export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC, isOpen, onToggle }) => {
+export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC, isOpen, onToggle, enabledFactors }) => {
     const formatMoney = (val: number) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
@@ -33,20 +34,29 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
     };
 
     // Prepare data for Recharts
+    // If Opportunity Cost is ON:
+    // - Scenario A = -metricsA.opportunityCostMonthly
+    // - Scenario B/C = metricsX.netMonthlySteadyStateHardWithOpportunity
+    const useOpportunityCost = enabledFactors.includeOpportunityCost;
+
+    const valA = useOpportunityCost ? -metricsA.opportunityCostMonthly : 0;
+    const valB = useOpportunityCost ? metricsB.netMonthlySteadyStateHardWithOpportunity : metricsB.netMonthlySteadyStateHard;
+    const valC = useOpportunityCost ? metricsC.netMonthlySteadyStateHardWithOpportunity : metricsC.netMonthlySteadyStateHard;
+
     const data = [
         {
             name: 'Scenario A',
-            value: 0, // Baseline is always 0 relative to itself
+            value: valA,
             label: 'Baseline'
         },
         {
             name: 'Scenario B',
-            value: metricsB.netMonthlySteadyState,
+            value: valB,
             label: 'Scenario B'
         },
         {
             name: 'Scenario C',
-            value: metricsC.netMonthlySteadyState,
+            value: valC,
             label: 'Scenario C'
         }
     ];
@@ -122,18 +132,20 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
                         <div className="hidden md:flex items-center gap-4 text-sm mr-4 border-r border-slate-200 dark:border-slate-700 pr-4">
                             <div className="flex items-center gap-2">
                                 <span className="text-slate-500 dark:text-slate-400 font-medium">Baseline:</span>
-                                <span className="font-mono text-slate-700 dark:text-slate-300">$0</span>
+                                <span className={`font-mono ${valA < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                                    {formatDelta(valA)}
+                                </span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-slate-500 dark:text-slate-400 font-medium">Scenario B:</span>
-                                <span className={`font-mono font-bold ${metricsB.netMonthlySteadyState >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                                    {formatDelta(metricsB.netMonthlySteadyState)}
+                                <span className={`font-mono font-bold ${valB >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                    {formatDelta(valB)}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-slate-500 dark:text-slate-400 font-medium">Scenario C:</span>
-                                <span className={`font-mono font-bold ${metricsC.netMonthlySteadyState >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                                    {formatDelta(metricsC.netMonthlySteadyState)}
+                                <span className={`font-mono font-bold ${valC >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                    {formatDelta(valC)}
                                 </span>
                             </div>
                         </div>
@@ -284,6 +296,44 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
                                         {formatDelta(metricsC.netMonthlySteadyStateHard)}
                                     </td>
                                 </tr>
+
+                                {/* Supervisor Opportunity Cost (Overlay) */}
+                                {useOpportunityCost && (
+                                    <tr className="bg-rose-50 dark:bg-rose-900/10 border-b dark:border-slate-700">
+                                        <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">
+                                            Supervisor Opportunity Cost
+                                            <span className="block text-[10px] text-rose-500 dark:text-rose-400 font-normal">Lost revenue from non-billable supervision</span>
+                                        </td>
+                                        <td className="px-4 py-3 font-mono text-rose-600 dark:text-rose-400">
+                                            {formatMoney(-metricsA.opportunityCostMonthly)}
+                                        </td>
+                                        <td className="px-4 py-3 font-mono text-rose-600 dark:text-rose-400">
+                                            {formatMoney(-metricsB.opportunityCostMonthly)}
+                                        </td>
+                                        <td className="px-4 py-3 font-mono text-rose-600 dark:text-rose-400">
+                                            {formatMoney(-metricsC.opportunityCostMonthly)}
+                                        </td>
+                                    </tr>
+                                )}
+
+                                {/* Net Monthly Impact (Hard + Opportunity) */}
+                                {useOpportunityCost && (
+                                    <tr className="bg-slate-100 dark:bg-slate-800 border-b dark:border-slate-700 border-t-2 border-slate-300 dark:border-slate-600">
+                                        <td className="px-4 py-3 font-bold text-slate-900 dark:text-white">
+                                            Net Monthly Impact (Economic Reality)
+                                            <span className="block text-[10px] text-slate-500 font-normal">Hard Cash - Opportunity Cost</span>
+                                        </td>
+                                        <td className="px-4 py-3 font-mono font-bold text-rose-600 dark:text-rose-400">
+                                            {formatDelta(-metricsA.opportunityCostMonthly)}
+                                        </td>
+                                        <td className={`px-4 py-3 font-mono font-bold ${metricsB.netMonthlySteadyStateHardWithOpportunity >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                            {formatDelta(metricsB.netMonthlySteadyStateHardWithOpportunity)}
+                                        </td>
+                                        <td className={`px-4 py-3 font-mono font-bold ${metricsC.netMonthlySteadyStateHardWithOpportunity >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                            {formatDelta(metricsC.netMonthlySteadyStateHardWithOpportunity)}
+                                        </td>
+                                    </tr>
+                                )}
 
                                 {/* Monthly Soft Value (The Ops Number) */}
                                 <tr className="bg-white dark:bg-slate-800 border-b dark:border-slate-700">

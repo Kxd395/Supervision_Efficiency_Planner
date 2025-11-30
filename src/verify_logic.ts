@@ -61,9 +61,17 @@ const baselinePayrollLoaded = (
     (scenarioA.supervisorFte * global.supervisorBaseHourly * global.fteHoursPerMonth)
 ) * (1 + global.benefitLoad);
 
-// const metricsA = computeScenarioMetrics(scenarioA, global, rules, hr, scenarioA, baselinePayrollLoaded);
-const metricsB = computeScenarioMetrics(scenarioB, global, rules, hr, scenarioA, baselinePayrollLoaded);
-const metricsC = computeScenarioMetrics(scenarioC, global, rules, hr, scenarioA, baselinePayrollLoaded);
+// Default enabled factors for verification
+const enabledFactors = {
+    includeRevenue: true,
+    includeRetention: true,
+    includeTransitionCost: true,
+    includeOpportunityCost: false
+};
+
+// const metricsA = computeScenarioMetrics(scenarioA, global, rules, hr, scenarioA, baselinePayrollLoaded, enabledFactors);
+const metricsB = computeScenarioMetrics(scenarioB, global, rules, hr, scenarioA, baselinePayrollLoaded, enabledFactors);
+const metricsC = computeScenarioMetrics(scenarioC, global, rules, hr, scenarioA, baselinePayrollLoaded, enabledFactors);
 
 // 4. Assertions
 
@@ -76,55 +84,51 @@ function assert(condition: boolean, message: string) {
     }
 }
 
-// Check Payroll Delta for B (Should be +1 CRS cost)
-// CRS Cost = 24 * 160 = 3840. Loaded (25%) = 4800.
-const expectedPayrollDeltaB = 24 * 160 * 1.25;
+// Check Payroll Delta for B (Should be +1 CRSS cost)
+// Scenario B has 1 CRSS, 10 CRS. Scenario A has 0 CRSS, 10 CRS.
+// Delta = 1 CRSS.
+const expectedPayrollDeltaB = (scenarioB.crssCount * global.crssBaseHourly * global.fteHoursPerMonth) * (1 + global.benefitLoad);
 assert(Math.abs(metricsB.payrollDeltaLoaded - expectedPayrollDeltaB) < 0.01,
     `Scenario B Payroll Delta should be ${expectedPayrollDeltaB}, got ${metricsB.payrollDeltaLoaded}`);
 
-// Check Payroll Delta for C (Promotion)
-// Base: 3 CRS. C: 3 CRS + 1 CRSS.
-// Delta = (1 CRSS - 0 CRS)?? No, baseline is 3 CRS.
-// Wait, Scenario A has 3 CRS. Scenario C has 3 CRS + 1 CRSS.
-// So C has 1 MORE staff than A?
-// My Scenario C definition above: frontlineCrsCount: 3, crssCount: 1.
-// Baseline A: frontlineCrsCount: 3.
-// So C is "Add 1 CRSS".
-// If it was a promotion from A, A should have had 4 CRS?
-// Let's assume A is "Current State" (3 CRS).
-// If we Promote, we usually take one of the 3 CRS and make them CRSS.
-// So C should be: 2 CRS, 1 CRSS.
-// BUT, usually we backfill.
-// If we backfill, we have 3 CRS, 1 CRSS. (Net +1 staff).
-// Let's test the "Backfill" case (3 CRS, 1 CRSS).
-// Cost Delta = 1 CRSS Cost.
-// CRSS Cost = 35.5 * 160 * 1.25 = 7100.
-const expectedPayrollDeltaC = 35.5 * 160 * 1.25;
+// Check Payroll Delta for C (Growth)
+// Scenario C has 2 CRSS, 15 CRS. Scenario A has 0 CRSS, 10 CRS.
+// Delta = 2 CRSS + 5 CRS.
+const deltaCRS = (scenarioC.frontlineCrsCount - scenarioA.frontlineCrsCount) * global.crsBaseHourly * global.fteHoursPerMonth;
+const deltaCRSS = (scenarioC.crssCount - scenarioA.crssCount) * global.crssBaseHourly * global.fteHoursPerMonth;
+const expectedPayrollDeltaC = (deltaCRS + deltaCRSS) * (1 + global.benefitLoad);
+
 assert(Math.abs(metricsC.payrollDeltaLoaded - expectedPayrollDeltaC) < 0.01,
     `Scenario C Payroll Delta should be ${expectedPayrollDeltaC}, got ${metricsC.payrollDeltaLoaded}`);
 
 // Check Revenue for C
 // Freed Hours.
-// Baseline A: 3 CRS. Required Hours?
-// Rules: Medicaid (70% @ 4hrs) + Commercial (30% @ 2hrs).
-// Weighted Avg = (0.7 * 4) + (0.3 * 2) = 2.8 + 0.6 = 3.4 hrs/FTE.
-// Total Required A = 3 * 3.4 = 10.2 hours.
-// Scenario C: 3 CRS. Total Required = 10.2 hours.
-// CRSS is present (count=1).
-// Logic says: if CRSS > 0, Supervisor Hours Needed = 0.
-// So Freed Hours = Baseline Needed (10.2) - Scenario Needed (0) = 10.2.
+// Baseline Required Hours (what Sup would do if no Tiered Model):
+// Indiv: 15 CRS * 2 hrs/staff = 30 hrs.
+// Group: 2 hrs (per team).
+// Total Required = 32 hrs.
+
+// Actual Supervisor Hours in C (Tiered):
+// Rules (Tiered C): Sup Indiv = 1 hr/staff. Sup Group = 0.
+// Sup Load = (15 * 1) + (2 CRSS * 1 hr Mgmt) = 17 hrs.
+
+// Freed Hours = Required (32) - Actual (17) = 15 hrs.
+
 // Billable Impact:
-// Utilization = 85%.
-// Realized Hours = 10.2 * 0.85 = 8.67.
-// Billable Rate = 150.
-// Revenue = 8.67 * 150 = 1300.5.
-const expectedRevenueC = 10.2 * 0.85 * 150;
+// Utilization = 65%.
+// Realized Hours = 15 * 0.65 = 9.75.
+// Billable Rate = 135.
+// Revenue = 9.75 * 135 = 1316.25.
+
+const expectedFreedHoursC = 15;
+const expectedRevenueC = expectedFreedHoursC * global.utilizationPercent * global.supervisorBillableRate;
+
 assert(Math.abs(metricsC.realizedRevenue - expectedRevenueC) < 0.01,
     `Scenario C Revenue should be ${expectedRevenueC}, got ${metricsC.realizedRevenue}`);
 
 // Check Net Impact C
 // Net = Revenue - Payroll Delta
-// Net = 1300.5 - 7100 = -5799.5
+// Net = 1316.25 - 38232 = -36915.75
 const expectedNetC = expectedRevenueC - expectedPayrollDeltaC;
 assert(Math.abs(metricsC.netMonthlySteadyState - expectedNetC) < 0.01,
     `Scenario C Net Impact should be ${expectedNetC}, got ${metricsC.netMonthlySteadyState}`);

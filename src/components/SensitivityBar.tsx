@@ -44,6 +44,12 @@ export const SensitivityBar: React.FC<Props> = ({ enabledFactors, setEnabledFact
                     onChange={(v) => setEnabledFactors({ ...enabledFactors, includeTransitionCost: v })}
                     color="bg-rose-500"
                 />
+                <Toggle
+                    label="Include Opportunity Cost"
+                    checked={enabledFactors.includeOpportunityCost}
+                    onChange={(v) => setEnabledFactors({ ...enabledFactors, includeOpportunityCost: v })}
+                    color="bg-rose-500"
+                />
             </div>
         </div>
     );

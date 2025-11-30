@@ -1,14 +1,15 @@
 import React from 'react';
-import type { Scenario, ComputedMetrics } from '../types';
+import type { Scenario, ComputedMetrics, EnabledFactors } from '../types';
 import { ScenarioCard } from './ScenarioCard';
 
 interface Props {
     scenarios: Record<string, Scenario>;
     metrics: Record<string, ComputedMetrics>;
     onScenarioChange: (id: string, newScenario: Scenario) => void;
+    enabledFactors: EnabledFactors;
 }
 
-export const ScenarioGrid: React.FC<Props> = ({ scenarios, metrics, onScenarioChange }) => {
+export const ScenarioGrid: React.FC<Props> = ({ scenarios, metrics, onScenarioChange, enabledFactors }) => {
     return (
         <section>
             <div className="flex items-center gap-2 mb-4 border-b border-slate-200 dark:border-slate-800 pb-2">
@@ -23,6 +24,7 @@ export const ScenarioGrid: React.FC<Props> = ({ scenarios, metrics, onScenarioCh
                     metrics={metrics.A}
                     onUpdate={(s) => onScenarioChange("A", s)}
                     isBaseline
+                    enabledFactors={enabledFactors}
                 />
 
                 {/* Scenario B: Optimized */}
@@ -30,6 +32,7 @@ export const ScenarioGrid: React.FC<Props> = ({ scenarios, metrics, onScenarioCh
                     scenario={scenarios.B}
                     metrics={metrics.B}
                     onUpdate={(s) => onScenarioChange("B", s)}
+                    enabledFactors={enabledFactors}
                 />
 
                 {/* Scenario C: Tiered */}
@@ -37,6 +40,7 @@ export const ScenarioGrid: React.FC<Props> = ({ scenarios, metrics, onScenarioCh
                     scenario={scenarios.C}
                     metrics={metrics.C}
                     onUpdate={(s) => onScenarioChange("C", s)}
+                    enabledFactors={enabledFactors}
                 />
             </div>
         </section>

@@ -91,6 +91,7 @@ export interface EnabledFactors {
     includeRevenue: boolean;
     includeRetention: boolean;
     includeTransitionCost: boolean;
+    includeOpportunityCost: boolean;
 }
 
 export interface Scenario {
@@ -115,6 +116,11 @@ export interface ComputedMetrics {
     hardMonthlyCashFlow: number;
     netMonthlySteadyStateSoft: number; // Soft Retention + Soft Efficiency
     netMonthlySteadyStateTotal: number; // Hard + Soft
+
+    // Opportunity Cost Metrics (Overlay)
+    supervisionHours: number; // Director hours spent on supervision
+    opportunityCostMonthly: number; // Lost revenue from supervision hours
+    netMonthlySteadyStateHardWithOpportunity: number; // Hard Net - Opportunity Cost
 
     netMonthlySteadyState: number; // DEPRECATED: Use netMonthlySteadyStateHard for P&L
     netAnnualSteadyState: number;

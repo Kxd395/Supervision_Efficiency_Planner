@@ -266,7 +266,7 @@ export function computeScenarioMetrics(
     hr: HRRiskAssumptions,
     baseline: Scenario,
     baselinePayrollLoaded: number,
-    enabledFactors: { includeRevenue: boolean; includeRetention: boolean; includeTransitionCost: boolean } = { includeRevenue: true, includeRetention: true, includeTransitionCost: true }
+    enabledFactors: { includeRevenue: boolean; includeRetention: boolean; includeTransitionCost: boolean; includeOpportunityCost: boolean } = { includeRevenue: true, includeRetention: true, includeTransitionCost: true, includeOpportunityCost: false }
 ): ComputedMetrics {
     // 1. Compliance
     const compliance = calculateCompliance(scenario, rules, global);
@@ -401,6 +401,25 @@ export function computeScenarioMetrics(
             finalComplianceStatus = 'At Capacity';
         }
     }
+    // 14. Opportunity Cost (Overlay)
+    // Calculate total Director capacity (hours/month)
+    const totalDirectorCapacity = scenario.supervisorFte * global.fteHoursPerMonth;
+
+    // Calculate supervision hours (remaining non-billable time)
+    // Formula: Total Capacity - Freed Hours
+    const supervisionHours = Math.max(0, totalDirectorCapacity - freedSupervisorHours);
+
+    // Calculate Opportunity Cost (Lost Revenue)
+    // Formula: Supervision Hours * Utilization * Billable Rate
+    const billableRate = scenario.overrides?.billableRate ?? global.supervisorBillableRate;
+    const utilization = scenario.overrides?.utilization ?? global.utilizationPercent;
+    const opportunityCostMonthly = supervisionHours * utilization * billableRate;
+
+    // Calculate Net Monthly Hard with Opportunity Cost
+    let netMonthlySteadyStateHardWithOpportunity = netMonthlySteadyStateHard;
+    if (enabledFactors.includeOpportunityCost) {
+        netMonthlySteadyStateHardWithOpportunity = netMonthlySteadyStateHard - opportunityCostMonthly;
+    }
 
     return {
         totalFte: scenario.frontlineCrsCount + scenario.crssCount + scenario.supervisorFte,
@@ -441,5 +460,11 @@ export function computeScenarioMetrics(
         safetyStatus: compliance.safety,
         riskFactors: compliance.safety === 'Overloaded' ? ['High Turnover Risk'] : [],
         breakEvenMonths: netMonthlySteadyStateHard > 0 ? transitionCost / netMonthlySteadyStateHard : 0,
+
+        // Opportunity Cost Metrics
+        supervisionHours,
+        opportunityCostMonthly,
+        netMonthlySteadyStateHardWithOpportunity,
     };
 }
+

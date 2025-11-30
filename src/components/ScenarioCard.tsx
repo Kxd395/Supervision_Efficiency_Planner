@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Scenario, ComputedMetrics } from '../types';
+import type { Scenario, ComputedMetrics, EnabledFactors } from '../types';
 import { Card, Badge, SteppedNumberInput, HelpTooltip } from './Shared';
 
 interface Props {
@@ -8,13 +8,15 @@ interface Props {
     baselineMetrics?: ComputedMetrics; // Optional, for diffing
     onUpdate: (updated: Scenario) => void;
     isBaseline?: boolean;
+    enabledFactors?: EnabledFactors;
 }
 
 export const ScenarioCard: React.FC<Props> = ({
     scenario,
     metrics,
     onUpdate,
-    isBaseline = false
+    isBaseline = false,
+    enabledFactors
 }) => {
 
     const handleStaffChange = (field: keyof Scenario, value: number) => {
@@ -152,6 +154,34 @@ export const ScenarioCard: React.FC<Props> = ({
                 </div>
             )}
 
+            {/* 3c. REVENUE LEAK (Opportunity Cost) - OVERLAY */}
+            {enabledFactors?.includeOpportunityCost && metrics.opportunityCostMonthly > 0 && (
+                <div className="flex items-center gap-2 pt-4 animate-in fade-in slide-in-from-left-2 duration-300">
+                    <div className="p-1.5 bg-rose-500/10 rounded border border-rose-500/20">
+                        {/* Warning / Leak Icon */}
+                        <svg className="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <div className="text-xs">
+                        <div className="flex items-center">
+                            <span className="block font-bold text-rose-400">
+                                -${fmt(metrics.opportunityCostMonthly)} / Month
+                            </span>
+                            <HelpTooltip
+                                content={{
+                                    description: "Revenue lost because the Clinical Director is doing non-billable supervision instead of billable clinical work.",
+                                    impact: "Reduces the true economic value of this scenario."
+                                }}
+                            />
+                        </div>
+                        <span className="text-[10px] text-rose-300/70">
+                            Revenue Leak (Opportunity Cost)
+                        </span>
+                    </div>
+                </div>
+            )}
+
             {/* 4. VALUE GENERATED (Grant Shield + Revenue Split) */}
             <div className="space-y-4 flex-grow">
                 <div className="flex items-center mt-4">
@@ -248,16 +278,24 @@ export const ScenarioCard: React.FC<Props> = ({
             <div className="pt-4 border-t border-slate-700">
                 <div className="flex justify-between items-center mb-1">
                     <div className="flex items-center">
-                        <span className="text-xs font-bold text-white uppercase">Net Monthly Impact (Hard)</span>
+                        <span className="text-xs font-bold text-white uppercase">
+                            {enabledFactors?.includeOpportunityCost ? "Net Monthly (Economic)" : "Net Monthly Impact (Hard)"}
+                        </span>
                         <HelpTooltip
                             content={{
-                                description: "The actual effect on the bank account. Calculated as: (Realized Revenue + Grant Savings) - Payroll Delta.",
+                                description: enabledFactors?.includeOpportunityCost
+                                    ? "The true economic impact, accounting for both Hard Cash flow AND the Opportunity Cost of the Supervisor's time."
+                                    : "The actual effect on the bank account. Calculated as: (Realized Revenue + Grant Savings) - Payroll Delta.",
                                 impact: "The primary financial KPI for decision making."
                             }}
                         />
                     </div>
-                    <span className={`text-lg font-bold ${metrics.netMonthlySteadyStateHard >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        {metrics.netMonthlySteadyStateHard >= 0 ? '+' : ''}${fmt(metrics.netMonthlySteadyStateHard)}
+                    <span className={`text-lg font-bold ${(enabledFactors?.includeOpportunityCost ? metrics.netMonthlySteadyStateHardWithOpportunity : metrics.netMonthlySteadyStateHard) >= 0
+                            ? 'text-emerald-400'
+                            : 'text-rose-400'
+                        }`}>
+                        {(enabledFactors?.includeOpportunityCost ? metrics.netMonthlySteadyStateHardWithOpportunity : metrics.netMonthlySteadyStateHard) >= 0 ? '+' : ''}
+                        ${fmt(enabledFactors?.includeOpportunityCost ? metrics.netMonthlySteadyStateHardWithOpportunity : metrics.netMonthlySteadyStateHard)}
                     </span>
                 </div>
                 <div className="flex justify-between items-center text-[10px] text-slate-500">

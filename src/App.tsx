@@ -60,7 +60,8 @@ const App: React.FC = () => {
   const [enabledFactors, setEnabledFactors] = useState<EnabledFactors>({
     includeRevenue: true,
     includeRetention: true,
-    includeTransitionCost: true
+    includeTransitionCost: true,
+    includeOpportunityCost: false
   });
 
   // Dark Mode Persistence
@@ -244,6 +245,7 @@ const App: React.FC = () => {
             metricsC={metrics.C}
             isOpen={isSummaryOpen}
             onToggle={() => setIsSummaryOpen(!isSummaryOpen)}
+            enabledFactors={enabledFactors}
           />
         </section>
 
@@ -278,6 +280,7 @@ const App: React.FC = () => {
           scenarios={scenarios}
           metrics={metrics}
           onScenarioChange={handleScenarioChange}
+          enabledFactors={enabledFactors}
         />
       </main>
 
