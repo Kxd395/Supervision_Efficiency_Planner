@@ -213,3 +213,85 @@ For detailed calculation formulas and financial logic, see:
 - **SSOT.md**: System requirements and technical specifications
 
 For questions about implementation or customization, contact your system administrator or the development team.
+
+---
+
+# Appendix A: Pennsylvania Billing Configuration Guide
+
+**Region:** Pennsylvania (HealthChoices / PROMISe / Medicare)  
+**Last Updated:** 2024-2025 Fee Schedules
+
+Use this guide to configure the **Revenue Assumptions** in the `GlobalAssumptionsPanel` based on standard PA reimbursement rates for Behavioral Health.
+
+## 1. Peer Support (CRSS) Settings
+
+*Configure these in the **"Peer (CRSS) Revenue"** section.*
+
+| Input Field | Recommended Value | Source / Logic |
+|:---|:---|:---|
+| **Billable Rate ($)** | **$54.00** | Based on **H0038** (Peer Support Services). <br>Avg. Managed Care Rate: **$13.50 per unit** (15 mins). <br>*Calculation:* $13.50 × 4 units = $54.00/hr. |
+| **Utilization (%)** | **40% - 50%** | Peers often have higher travel time and no-show rates than clinicians. <br>*Note:* Daily max is usually 16 units (4 hours). |
+
+**Applicable Codes (PA Medicaid):**
+- **H0038:** Peer Support Services (Individual).
+- **H0038-HQ:** Peer Support Services (Group). *Rate is lower per person (~$2.50/unit).*
+
+**Medicare Opportunity (New 2024):**
+- **G0140 (PIN-PS):** Principal Illness Navigation. ~$77.95/month (first hour).
+- *Use Case:* If serving older adults/SSDI, your effective hourly rate may be higher.
+
+---
+
+## 2. Clinical Supervisor Settings
+
+*Configure these in the **"Supervisor Revenue"** section.*
+
+| Input Field | Recommended Value | Source / Logic |
+|:---|:---|:---|
+| **Billable Rate ($)** | **$131.00** | **Conservative:** Based on PA Medicaid (CCBH/Magellan) floor for **90837** (60 min Therapy). |
+| **Billable Rate ($)** | **$150.00** | **Aggressive:** Blended rate including Diagnostic Evals (**90791** @ ~$145) and commercial insurance. |
+| **Utilization (%)** | **60% - 75%** | Clinical Directors have significant administrative drag. Do not set to 100%. |
+
+---
+
+## 3. Hybrid Funding Logic (Grant vs. Billable)
+
+*Configure this in the **"Grant Availability"** section.*
+
+Many PA providers utilize county (SCA) or state (OMHSAS) grants to fund specific positions.
+
+- **Scenario:** You have a county grant that pays for 2 full-time Peers. You want to hire 4 Peers total.
+- **Configuration:**
+  1. Set **Grant-Funded Slots** to **2**.
+  2. Set **Peer Billable Rate** to **$54.00**.
+  3. **Result:** The model will calculate the first 2 hires at **$0 cost** (Grant). The next 2 hires will be calculated using the **$54/hr** revenue offset (Billable).
+
+---
+
+## 4. Cheat Sheet: Input Field Mapping
+
+| UI Section | UI Label | PA Standard Value | Notes |
+|:---|:---|:---|:---|
+| **Global Assumptions** | `Sup. Billable Rate` | **131** | Code 90837 |
+| **Global Assumptions** | `Peer Billable Rate` | **54** | Code H0038 |
+| **Global Assumptions** | `Grant Slots` | *(Check Contract)* | e.g., "2 FTEs" |
+| **Supervision Rules** | `Max Ratio` | **1:10** | PA State Regs typically cap full-time peers per supervisor. |
+
+---
+
+## 5. Additional Resources
+
+### Pennsylvania-Specific Rate Sheets
+- **HealthChoices (Medicaid):** Contact your local MCO (e.g., CCBH, AmeriHealth Caritas, UPMC)
+- **PROMISe:** [OMHSAS Fee Schedule](https://www.dhs.pa.gov/providers/Providers/Pages/Behavioral-Health-Services.aspx)
+- **Medicare:** [CMS Physician Fee Schedule Lookup](https://www.cms.gov/medicare/physician-fee-schedule/search)
+
+### Billing Code References
+- **H0038:** Peer Support Services (Individual/Group)
+- **90837:** Psychotherapy, 60 minutes
+- **90791:** Psychiatric Diagnostic Evaluation
+- **G0140:** Principal Illness Navigation - Peer Support (Medicare, effective 2024)
+
+---
+
+*Last Updated: November 2024*
