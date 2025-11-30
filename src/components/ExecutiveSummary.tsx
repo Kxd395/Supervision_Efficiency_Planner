@@ -194,10 +194,13 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
                                     content={({ active, payload }) => {
                                         if (active && payload && payload.length) {
                                             const data = payload[0].payload;
+                                            const label = useOpportunityCost
+                                                ? "Net Monthly Impact (Economic Reality - includes Opportunity Cost)"
+                                                : "Monthly Net Cash (Hard)";
                                             return (
                                                 <div className="bg-slate-800 text-white text-xs p-2 rounded shadow-lg">
                                                     <div className="font-bold mb-1">{data.label}</div>
-                                                    <div className="text-slate-300 mb-1">Monthly Net Cash (Hard)</div>
+                                                    <div className="text-slate-300 mb-1">{label}</div>
                                                     <div className="font-mono">{formatDelta(data.value)}</div>
                                                 </div>
                                             );

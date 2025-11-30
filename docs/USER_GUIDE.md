@@ -226,7 +226,18 @@ If break-even exceeds your acceptable timeline:
 ### Data Persistence
 Your inputs are automatically saved to your browser's local storage. They will persist across page refreshes and browser sessions.
 
-### Exporting & Reporting (Print View)
+#### 4.4 Supervisor Opportunity Cost Mode
+This mode reveals the "hidden cost" of the status quo. It quantifies the revenue lost when a Clinical Director spends time on non-billable supervision instead of billable clinical work.
+
+*   **How to Enable:** Toggle **"Include Opportunity Cost"** in the bottom Sensitivity Bar.
+*   **What Changes:**
+    *   **Scenario A (Baseline):** The Net Impact bar turns **RED** (Negative). This represents the "Cost of Doing Nothing"—the revenue you are losing *right now*.
+    *   **Scenarios B & C:** The Net Impact improves because delegating supervision to a CRSS "stops the bleeding," allowing the Director to reclaim that lost revenue.
+    *   **Revenue Leak:** A rose-colored block appears in the Scenario Cards showing exactly how much revenue is being lost to supervision duties.
+
+---
+
+## 5. Exporting & Reporting (Print View)
 The application features a built-in **Executive Report** mode.
 1.  Click the **Print Icon** in the top header (or press `Cmd+P` / `Ctrl+P`).
 2.  The view will transform into a clean, white-paper report suitable for Board presentations.

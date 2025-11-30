@@ -1,3 +1,9 @@
+> **STATUS: IMPLEMENTED (2025-11-30)**
+> This prompt has been fully executed. The Supervisor Opportunity Cost mode is now live in the application.
+> - Logic: `src/logic.ts`
+> - UI: `SensitivityBar.tsx`, `ExecutiveSummary.tsx`, `ScenarioCard.tsx`
+> - Documentation: Updated `CALCULATIONS.md`, `SSOT.md`, `USER_GUIDE.md`
+
 You have all the right ingredients. What you are really asking for now is a single, clean “master prompt” that:
 
 * Keeps your existing CFO Hard logic intact.
@@ -413,3 +419,4 @@ You can still tweak wording, but structurally this is a full spec.
 
 
 ```
+Always update the DOC, SSOT, logic, calculation ect.

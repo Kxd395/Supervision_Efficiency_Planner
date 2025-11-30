@@ -1,7 +1,7 @@
 # Single Source of Truth (SSOT) - Supervision Efficiency Planner
-**Version:** 2.0 (Gold Master)
+**Version:** 2.1 (Gold Master - Logic Lock)
 **Status:** Live
-**Last Updated:** 2025-11-29
+**Last Updated:** 2025-11-30
 
 ## 1. Project Overview
 The **Supervision Efficiency Planner** is a financial modeling tool designed to demonstrate the ROI of shifting clinical supervision duties from high-cost Clinical Directors to Peer Supervisors (CRSS). It allows organizations to model staffing scenarios, calculate "Hard" (Cash Flow) and "Soft" (Value) impacts, and visualize the break-even point of this transition.
@@ -54,7 +54,12 @@ The final "Bottom Line" metrics used for decision making.
 
 *   **Hard Net Impact (Primary KPI):**
     *   The actual effect on the bank account.
-    *   `Net_Hard = (Realized_Revenue + Grant_Savings) - Payroll_Delta_Loaded + (Hard_Efficiency)`
+    *   `Net_Hard = (Sup Revenue + Peer Revenue + Grant Savings) - Payroll_Delta_Loaded + (Hard_Efficiency)`
+    *   *(Note: "Revenue" in charts is the sum of Sup and Peer revenue, while Grant Savings is shown separately in the cards.)*
+*   **Net Economic Impact (Opportunity Cost Overlay):**
+    *   The "Economic Reality" including lost potential revenue.
+    *   `Net_Economic = Net_Hard - (Supervision_Hours * Utilization * Rate)`
+    *   Makes the "Do Nothing" baseline explicitly negative.
 *   **Soft Value (Secondary KPI):**
     *   The estimated operational value.
     *   `Soft_Value = Retention_Savings + (Soft_Efficiency)`
@@ -102,6 +107,7 @@ Toggles to adjust the financial model's conservatism.
 | `includeRevenue` | **ON:** Adds `Realized_Revenue` to Net Impact. **OFF:** Revenue is $0 (Cost Center view). |
 | `includeRetention` | **ON:** Adds `Retention_Savings` to Soft Value. **OFF:** Hidden. |
 | `includeTransitionCost` | **ON:** Deducts Year 1 OT bridge costs from Annual Net. **OFF:** Steady-state only. |
+| `includeOpportunityCost` | **ON:** Subtracts lost revenue from Net Impact. **OFF:** Standard Cash Flow view. |
 
 ---
 

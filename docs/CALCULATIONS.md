@@ -118,6 +118,16 @@ Reducing burnout saves money on turnover.
 
 $$ \text{Savings} = \text{Total Staff} \times \text{Reduction Rate (10\%)} \times \text{Cost per Departure} $$
 
+### E. Supervisor Opportunity Cost (Economic Reality)
+This metric quantifies the "Cost of Doing Nothing." It represents the potential revenue lost because the Clinical Director is tied up with non-billable supervision duties.
+
+$$ \text{Supervision Hours} = \max(0, \text{Total Capacity} - \text{Freed Hours}) $$
+$$ \text{Opportunity Cost} = \text{Supervision Hours} \times \text{Utilization \%} \times \text{Billable Rate} $$
+
+**Interpretation:**
+*   **Scenario A (Baseline):** The Director does all supervision, so Opportunity Cost is high. This makes the baseline "Net Impact" negative in the Economic view.
+*   **Scenarios B & C:** As supervision is delegated to CRSS, the Director's supervision load decreases, reducing the Opportunity Cost and improving the Net Economic Impact.
+
 ---
 
 ## 5. Return on Investment (ROI)
@@ -126,6 +136,14 @@ $$ \text{Savings} = \text{Total Staff} \times \text{Reduction Rate (10\%)} \time
 This is the "CFO Number"—the actual cash impact on the P&L.
 
 $$ \text{Net Hard} = (\text{Sup Revenue} + \text{Peer Revenue} + \text{Grant Savings}) - \text{Payroll Delta} + \text{Hard Efficiency} $$
+
+### Net Monthly Impact (Economic Reality)
+When "Include Opportunity Cost" is enabled, we overlay the opportunity cost to show the full economic picture.
+
+$$ \text{Net Economic} = \text{Net Hard} - \text{Opportunity Cost} $$
+
+*   **Scenario A:** Becomes negative (Cost of lost revenue).
+*   **Scenarios B & C:** Show the benefit of reclaiming that time.
 
 *   If positive: The change pays for itself immediately.
 *   If negative: The efficiency gains are not enough to cover the new hire costs (yet).
