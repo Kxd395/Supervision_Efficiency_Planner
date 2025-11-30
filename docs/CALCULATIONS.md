@@ -23,6 +23,17 @@ $$ \text{Monthly Cost} = \text{FTE Count} \times \text{Loaded Rate} \times 160 $
 
 ---
 
+### Grant Funding (Dual Pools)
+We model grant funding as a "First-In Priority" offset. This means the first $N$ hires are covered by grants (costing the hospital $0), and only hires $N+1$ onwards hit the P&L.
+
+We split this into two distinct pools to prevent "Average Cost" errors:
+1.  **Frontline CRS Grants**: Covers entry-level staff (e.g., SOR Grant).
+2.  **Supervisor CRSS Grants**: Covers leadership roles (e.g., County Funding).
+
+$$ \text{Grant Savings} = (\text{Grant Slots}_{CRS} \times \text{Cost}_{CRS}) + (\text{Grant Slots}_{CRSS} \times \text{Cost}_{CRSS}) $$
+
+---
+
 ## 2. Workload Modeling (The "Engine")
 
 The core of the planner is calculating **Supervisor Load**: How many hours of work does the Clinical Supervisor need to perform to support the staff?
@@ -43,7 +54,7 @@ In the tiered model, we introduce a **CRSS (Certified Recovery Support Specialis
 The Supervisor's new load consists of three buckets:
 1.  **Direct Retention**: Clinical hours the Supervisor *keeps* (e.g., high-risk cases).
 2.  **Group Facilitation**: Groups the Supervisor runs (alone or co-facilitated).
-3.  **Management Oversight**: Time spent supervising the CRSS leads themselves.
+3.  **Management Oversight**: Time spent managing/supervising the CRSS leads themselves.
 
 $$ \text{Load}_{Tiered} = \underbrace{(\text{Frontline} \times \text{Sup Indiv})}_{\text{Direct Work}} + \underbrace{(\text{Sup Group} + \text{Co-Facilitated})}_{\text{Group Work}} + \underbrace{(\text{CRSS Count} \times \text{Mgmt Overhead})}_{\text{Management}} $$
 
@@ -75,13 +86,20 @@ How do we turn "Freed Hours" into money?
 ### A. Freed Supervisor Hours
 $$ \text{Freed Hours} = \text{Baseline Load} - \text{New Scenario Load} $$
 
-### B. Realized Revenue (Opportunity Cost)
+### B. Realized Revenue (Dual Streams)
+We calculate revenue from two sources:
+
+#### 1. Supervisor Repurposing
 If the Supervisor is not doing supervision, they can bill for services (e.g., Outpatient Counseling).
 
-$$ \text{Revenue} = \text{Freed Hours} \times \text{Utilization \%} \times \text{Billable Rate} $$
+$$ \text{Sup Revenue} = \text{Freed Hours} \times \text{Utilization \%} \times \text{Billable Rate} $$
 
-*   **Utilization \%**: Accounts for the fact that you can't bill 100% of available time (admin, no-shows).
-*   **Proof**: If 10 hours are freed, and utilization is 75%, we have 7.5 billable hours. At $150/hr, that's $1,125/mo in new revenue.
+#### 2. Peer (CRSS) Revenue (Gap Fill)
+CRSS staff can bill for services (e.g., H0038), but only if the hospital is paying for them.
+*   **Safety Valve**: Revenue is 0 if `enablePeerBilling` is false.
+*   **Credentialing**: We limit billable FTEs to `min(Billable Staff, Credentialed Count)`.
+
+$$ \text{Peer Revenue} = \text{Eligible FTEs} \times (\text{FTE Hours} \times \text{Peer Util \%}) \times \text{Peer Rate} $$
 
 ### C. Labor Efficiency (Arbitrage)
 This measures the savings from having a lower-cost employee (CRSS) do work previously done by a high-cost employee (Supervisor).
@@ -92,7 +110,7 @@ $$ \text{Efficiency Savings} = \text{Freed Hours} \times \text{Arbitrage/Hr} $$
 **Logic Rule (The "Double Dip" Prevention):**
 *   If we calculate **Revenue**, we usually set **Hard Labor Savings** to 0. Why? Because you can't *both* save the Supervisor's salary (by firing them/cutting hours) *AND* use their time to generate revenue. You have to pick one.
 *   In this model:
-    *   **Hard Cash Flow** = Revenue - Payroll Increase.
+    *   **Hard Cash Flow** = Revenue - (Payroll Increase - Grant Savings).
     *   **Soft Value** = Efficiency Savings (we treat arbitrage as "Soft" value when Revenue is active, representing the *quality* of the spend).
 
 ### D. Retention Savings (Soft)
@@ -107,7 +125,7 @@ $$ \text{Savings} = \text{Total Staff} \times \text{Reduction Rate (10\%)} \time
 ### Net Monthly Steady State (Hard)
 This is the "CFO Number"—the actual cash impact on the P&L.
 
-$$ \text{Net Hard} = \text{Realized Revenue} - \text{Payroll Delta (Loaded)} $$
+$$ \text{Net Hard} = (\text{Sup Revenue} + \text{Peer Revenue}) - (\text{Payroll Delta} - \text{Grant Savings}) $$
 
 *   If positive: The change pays for itself immediately.
 *   If negative: The efficiency gains are not enough to cover the new hire costs (yet).

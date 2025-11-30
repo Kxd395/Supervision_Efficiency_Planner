@@ -63,6 +63,30 @@ Every critical input field includes a help tooltip marked with a **?** icon. Hov
 - **Description**: Target percentage of freed time that can be converted to billable activities
 - **Impact**: Conservative estimates (60-75%) account for admin time and scheduling gaps
 
+#### Grant Funding (Dual Pools)
+
+**Frontline CRS Slots**
+- **Description**: Number of Frontline CRS roles paid by grants (e.g., SOR)
+- **Impact**: Reduces payroll cost for CRS roles (First-In Priority)
+
+**Peer Sup (CRSS) Slots**
+- **Description**: Number of CRSS roles paid by grants (e.g., County)
+- **Impact**: Reduces payroll cost for CRSS roles (First-In Priority)
+
+#### Peer (CRSS) Revenue
+
+**Enable Peer Billing (Switch)**
+- **Description**: Master control to turn Peer Revenue on or off
+- **Impact**: Safety Valve. If Off, Peer Revenue is $0 regardless of other settings
+
+**Credentialed FTEs**
+- **Description**: Number of staff actually credentialed to bill insurance
+- **Impact**: Limits revenue generation to this specific count (e.g., "Only 1 of my 5 peers can bill")
+
+**Peer Rate ($)**
+- **Description**: Hourly billing rate for CRSS's direct services (e.g., H0038)
+- **Impact**: Generates "Gap Fill" revenue (only for non-grant funded staff)
+
 ---
 
 ## Understanding the Supervision Rules Panel
