@@ -243,74 +243,76 @@ export const ScenarioCard: React.FC<Props> = ({
                             />
                         </div>
                     )}
+                </>)}
+            </div>
+
+            {/* Net Impact */}
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-3 mt-2">
+                <div className="flex justify-between items-center mb-2">
+                    <span className="font-bold text-slate-700 dark:text-slate-200">Net Monthly Impact (Hard)</span>
+                    <span className={`font-bold text-lg flex items-center gap-1 ${metrics.netMonthlySteadyStateHard >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
+                        {formatDelta(metrics.netMonthlySteadyStateHard)}
+                        {metrics.netMonthlySteadyStateHard < 0 && (
+                            <HelpTooltip text="Cost of Compliance & Quality Assurance (Cash Flow Only)" />
+                        )}
+                    </span>
                 </div>
 
-                {/* Net Impact */}
-                <div className="border-t border-slate-200 dark:border-slate-800 pt-3 mt-2">
-                    <div className="flex justify-between items-center mb-2">
-                        <span className="font-bold text-slate-700 dark:text-slate-200">Net Monthly Impact (Hard)</span>
-                        <span className={`font-bold text-lg flex items-center gap-1 ${metrics.netMonthlySteadyStateHard >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
-                            {formatDelta(metrics.netMonthlySteadyStateHard)}
-                            {metrics.netMonthlySteadyStateHard < 0 && (
-                                <HelpTooltip text="Cost of Compliance & Quality Assurance (Cash Flow Only)" />
-                            )}
+                {/* Soft Value Display */}
+                {metrics.softValueTotal > 0 && (
+                    <div className="flex justify-between items-center mb-2 text-xs">
+                        <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                            <span>+ Operational Value (Soft)</span>
+                            <HelpTooltip text="Estimated value of reduced turnover and improved labor allocation. Not included in Net Cash Flow." />
+                        </div>
+                        <span className="font-medium text-slate-500 dark:text-slate-400">
+                            +{formatMoney(metrics.softValueTotal)}
                         </span>
                     </div>
+                )}
 
-                    {/* Soft Value Display */}
-                    {metrics.softValueTotal > 0 && (
-                        <div className="flex justify-between items-center mb-2 text-xs">
-                            <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                                <span>+ Operational Value (Soft)</span>
-                                <HelpTooltip text="Estimated value of reduced turnover and improved labor allocation. Not included in Net Cash Flow." />
-                            </div>
-                            <span className="font-medium text-slate-500 dark:text-slate-400">
-                                +{formatMoney(metrics.softValueTotal)}
+                {!isBaseline && (
+                    <div className="bg-slate-100 dark:bg-slate-900 p-2 rounded text-xs space-y-1">
+                        <div className="flex justify-between">
+                            <span className="text-slate-500 dark:text-slate-400">Salary & Payroll Impact</span>
+                            <span className={`font-medium ${metrics.payrollDeltaLoaded > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                {metrics.payrollDeltaLoaded > 0 ? '+' : ''}{formatCurrency(metrics.payrollDeltaLoaded)}
                             </span>
                         </div>
-                    )}
-
-                    {!isBaseline && (
-                        <div className="bg-slate-100 dark:bg-slate-900 p-2 rounded text-xs space-y-1">
-                            <div className="flex justify-between">
-                                <span className="text-slate-500 dark:text-slate-400">Salary & Payroll Impact</span>
-                                <span className={`font-medium ${metrics.payrollDeltaLoaded > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                                    {metrics.payrollDeltaLoaded > 0 ? '+' : ''}{formatCurrency(metrics.payrollDeltaLoaded)}
+                        {metrics.transitionCost > 0 && (
+                            <div className="flex justify-between text-rose-600/70 dark:text-rose-400/70">
+                                <span className="flex items-center gap-1">
+                                    - Transition Cost (Year 1)
+                                    <HelpTooltip text="One-time OT bridge cost during recruitment (approx. 1 month)." />
                                 </span>
+                                <span>-{formatMoney(metrics.transitionCost)}</span>
                             </div>
-                            {metrics.transitionCost > 0 && (
-                                <div className="flex justify-between text-rose-600/70 dark:text-rose-400/70">
-                                    <span className="flex items-center gap-1">
-                                        - Transition Cost (Year 1)
-                                        <HelpTooltip text="One-time OT bridge cost during recruitment (approx. 1 month)." />
-                                    </span>
-                                    <span>-{formatMoney(metrics.transitionCost)}</span>
+                        )}
+                        <div className="flex justify-between border-t border-slate-200 dark:border-slate-800 pt-1 mt-1">
+                            <span className="flex items-center gap-1 dark:text-slate-400">
+                                Year 1 Net
+                                {metrics.netAnnualSteadyState - metrics.transitionCost < 0 && (
+                                    <span title="Includes one-time transition costs (OT backfill)" className="cursor-help text-amber-500">⚠️</span>
+                                )}
+                                <HelpTooltip text="Annual Steady State minus One-Time Transition Costs." />
+                            </span>
+                            <div className="text-right">
+                                <div className={metrics.netAnnualSteadyState - metrics.transitionCost >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}>
+                                    {formatDelta(metrics.netAnnualSteadyState - metrics.transitionCost)}
                                 </div>
-                            )}
-                            <div className="flex justify-between border-t border-slate-200 dark:border-slate-800 pt-1 mt-1">
-                                <span className="flex items-center gap-1 dark:text-slate-400">
-                                    Year 1 Net
-                                    {metrics.netAnnualSteadyState - metrics.transitionCost < 0 && (
-                                        <span title="Includes one-time transition costs (OT backfill)" className="cursor-help text-amber-500">⚠️</span>
-                                    )}
-                                    <HelpTooltip text="Annual Steady State minus One-Time Transition Costs." />
-                                </span>
-                                <div className="text-right">
-                                    <div className={metrics.netAnnualSteadyState - metrics.transitionCost >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}>
-                                        {formatDelta(metrics.netAnnualSteadyState - metrics.transitionCost)}
+                                {metrics.breakEvenMonths > 0 && metrics.breakEvenMonths < 24 && (
+                                    <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                                        (Break-even: ~{Math.ceil(metrics.breakEvenMonths)} mo)
                                     </div>
-                                    {metrics.breakEvenMonths > 0 && metrics.breakEvenMonths < 24 && (
-                                        <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                                            (Break-even: ~{Math.ceil(metrics.breakEvenMonths)} mo)
-                                        </div>
-                                    )}
-                                </div>
+                                )}
                             </div>
                         </div>
-                    )}
-                </div>
-            </>)}
-        </div>
+                    </div>
+                )}
+            </div>
+        </>)
+}
+        </div >
         </div >
     );
 
