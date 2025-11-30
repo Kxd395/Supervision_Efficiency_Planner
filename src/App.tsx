@@ -32,11 +32,11 @@ const App: React.FC = () => {
   // --- State ---
   // Using persisted state with debounce
   const [globalAssumptions, setGlobalAssumptions] = usePersistedState<GlobalAssumptions>(
-    "sep_global",
+    "sep_global_v2", // Bumped to v2 for grant slots + peer revenue
     DEFAULT_GLOBAL_ASSUMPTIONS
   );
   const [demandAssumptions, setDemandAssumptions] = usePersistedState<DemandAssumptions>(
-    "sep_demand",
+    "sep_demand_v2", // Bumped to v2 for simplified operations-only fields
     DEFAULT_DEMAND_ASSUMPTIONS
   );
   const [supervisionRules, setSupervisionRules] = usePersistedState<SupervisionRules>(

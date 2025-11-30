@@ -6,23 +6,28 @@ export const DEFAULT_GLOBAL_ASSUMPTIONS: GlobalAssumptions = {
     supervisorBaseHourly: 45.00,
     benefitLoad: 0.35,
     fteHoursPerMonth: 160,
+
+    grantFundedSlots: 0, // Default: Pure fee-for-service
+
     supervisorBillableRate: 150,
     supervisorTargetBillableHours: 20,
     utilizationPercent: 0.75,
     revenueRealizationPercent: 95,
+
+    peerBillableRate: 65, // CRSS billing rate (typically lower than supervisor)
+    peerUtilization: 0, // Default: Conservative 0% (can be enabled)
+
     reinvestmentTask: "Outpatient Counseling"
 };
 
 export const DEFAULT_DEMAND_ASSUMPTIONS: DemandAssumptions = {
-    currentSupervisorBillableHours: 5,
-    maxBillableHoursPerFTE: 25,
     activeWaitlist: 10,
     newReferralsPerMonth: 5,
     avgDaysReferralToAuth: 14,
     avgDaysAuthToSession: 7,
-    utilizationCap: 40,
-    rampMonths: 6,
-    fundingSource: 'Billable'
+
+    rampUpMonths: 3, // Months for new hire to reach full productivity
+    fundingLabel: "Billable" // "Billable", "Grant", or "Hybrid"
 };
 
 export const DEFAULT_SUPERVISION_RULES: SupervisionRules = {

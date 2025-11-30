@@ -8,24 +8,35 @@ export interface GlobalAssumptions {
     benefitLoad: number; // e.g., 0.25 for 25%
     fteHoursPerMonth: number;
 
-    // Revenue
+    // Grant Funding (NEW)
+    grantFundedSlots: number; // Integer: Number of CRSS positions fully covered by grant
+
+    // Supervisor Revenue
     supervisorBillableRate: number;
     supervisorTargetBillableHours: number;
     utilizationPercent: number; // 0.0 to 1.0
     revenueRealizationPercent: number; // 0 to 100
+
+    // Peer (CRSS) Revenue (NEW)
+    peerBillableRate: number; // CRSS billing rate (typically lower than supervisor)
+    peerUtilization: number; // 0.0 to 1.0, percentage of time CRSS can bill
+
+    // Context
     reinvestmentTask: string; // e.g., "Outpatient Counseling"
 }
 
 export interface DemandAssumptions {
-    currentSupervisorBillableHours: number;
-    maxBillableHoursPerFTE: number;
+    // Volume Inputs
     activeWaitlist: number;
     newReferralsPerMonth: number;
+
+    // Timeline Inputs
     avgDaysReferralToAuth: number;
     avgDaysAuthToSession: number;
-    utilizationCap: number; // Max new hours we can realistically fill
-    rampMonths: number; // Months to reach full utilization
-    fundingSource: 'Billable' | 'Grant';
+
+    // Operational Inputs (NEW)
+    rampUpMonths: number; // Months for new hire to reach full productivity
+    fundingLabel: string; // "Billable", "Grant", or "Hybrid"
 }
 
 
