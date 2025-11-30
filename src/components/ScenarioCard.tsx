@@ -411,5 +411,5 @@ export const ScenarioCard: React.FC<Props> = ({
                     )}
                 </div>
             </Card>
-            );
+
 };
