@@ -7,13 +7,18 @@ export const DEFAULT_GLOBAL_ASSUMPTIONS: GlobalAssumptions = {
     benefitLoad: 0.35,
     fteHoursPerMonth: 160,
 
-    grantFundedSlots: 0, // Default: Pure fee-for-service
+    // Grant Funding (Dual Pools)
+    grantSlotsCRS: 0, // Default: Pure fee-for-service
+    grantSlotsCRSS: 0, // Default: Pure fee-for-service
 
     supervisorBillableRate: 135, // CBH (Philadelphia) standard for 90837
     supervisorTargetBillableHours: 20,
     utilizationPercent: 0.65, // CBH-typical supervisor productivity
     revenueRealizationPercent: 95,
 
+    // Peer (CRSS) Revenue (Controlled)
+    enablePeerBilling: false, // Default: Disabled (Safety Valve)
+    credentialedPeerFTEs: undefined, // Default: All eligible (if enabled)
     peerBillableRate: 55, // CBH (Philadelphia) H0038 @ $13.75/unit
     peerUtilization: 0, // Default: Conservative 0% (can be enabled)
 

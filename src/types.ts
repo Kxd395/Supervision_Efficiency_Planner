@@ -8,8 +8,9 @@ export interface GlobalAssumptions {
     benefitLoad: number; // e.g., 0.25 for 25%
     fteHoursPerMonth: number;
 
-    // Grant Funding (NEW)
-    grantFundedSlots: number; // Integer: Number of CRSS positions fully covered by grant
+    // Grant Funding (Dual Pools)
+    grantSlotsCRS: number; // Frontline CRS positions covered by grant
+    grantSlotsCRSS: number; // Supervisor CRSS positions covered by grant
 
     // Supervisor Revenue
     supervisorBillableRate: number;
@@ -17,7 +18,9 @@ export interface GlobalAssumptions {
     utilizationPercent: number; // 0.0 to 1.0
     revenueRealizationPercent: number; // 0 to 100
 
-    // Peer (CRSS) Revenue (NEW)
+    // Peer (CRSS) Revenue (Controlled)
+    enablePeerBilling: boolean; // Master switch
+    credentialedPeerFTEs?: number; // Optional limit on who can bill (undefined = all eligible)
     peerBillableRate: number; // CRSS billing rate (typically lower than supervisor)
     peerUtilization: number; // 0.0 to 1.0, percentage of time CRSS can bill
 

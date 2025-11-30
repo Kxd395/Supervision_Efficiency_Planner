@@ -94,27 +94,49 @@ export const GlobalAssumptionsPanel: React.FC<Props> = ({ assumptions, onChange 
                         />
                     </div>
 
-                    {/* B. Grant Availability (NEW) */}
+                    {/* B. Grant Availability (Dual Pools) */}
                     <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                        <div className="flex items-center gap-2">
-                            <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-400">Grant Availability</h4>
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-400">Grant Funding Slots</h4>
                             <Badge label="First-In Priority" color="emerald" />
                         </div>
-                        <SteppedNumberInput
-                            label="Grant-Funded Slots (FTEs)"
-                            value={assumptions.grantFundedSlots}
-                            onChange={(v) => handleChange('grantFundedSlots', v)}
-                            step={1}
-                            min={0}
-                            suffix="slots"
-                            helpContent={{
-                                description: "Number of CRSS positions fully covered by grant funding.",
-                                impact: "First N hires cost $0. Additional hires are billed at full rate."
-                            }}
-                        />
-                        <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-                            💡 Hint: If set to 2, the first 2 CRSS hires have no payroll cost.
-                        </p>
+
+                        <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg space-y-4">
+                            {/* Frontline CRS Grants */}
+                            <div>
+                                <SteppedNumberInput
+                                    label="Frontline CRS Slots"
+                                    value={assumptions.grantSlotsCRS}
+                                    onChange={(v) => handleChange('grantSlotsCRS', v)}
+                                    step={1}
+                                    min={0}
+                                    suffix="FTEs"
+                                    helpContent={{
+                                        description: "Number of Frontline CRS roles paid by grants (e.g., SOR).",
+                                        impact: "Reduces payroll cost for CRS roles."
+                                    }}
+                                />
+                            </div>
+
+                            {/* Separator */}
+                            <div className="border-t border-slate-200 dark:border-slate-700"></div>
+
+                            {/* Supervisor CRSS Grants */}
+                            <div>
+                                <SteppedNumberInput
+                                    label="Peer Sup (CRSS) Slots"
+                                    value={assumptions.grantSlotsCRSS}
+                                    onChange={(v) => handleChange('grantSlotsCRSS', v)}
+                                    step={1}
+                                    min={0}
+                                    suffix="FTEs"
+                                    helpContent={{
+                                        description: "Number of CRSS roles paid by grants (e.g., County).",
+                                        impact: "Reduces payroll cost for CRSS roles."
+                                    }}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -153,37 +175,79 @@ export const GlobalAssumptionsPanel: React.FC<Props> = ({ assumptions, onChange 
                         </div>
                     </div>
 
-                    {/* B. Peer (CRSS) Revenue (NEW) */}
+                    {/* B. Peer (CRSS) Revenue (Controlled) */}
                     <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                        <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-400">Peer (CRSS) Revenue</h4>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-                            ⭐ CRSS can now bill services
-                        </p>
-                        <div className="grid grid-cols-2 gap-3">
-                            <SteppedNumberInput
-                                label="Rate ($)"
-                                value={assumptions.peerBillableRate}
-                                onChange={(v) => handleChange('peerBillableRate', v)}
-                                prefix="$"
-                                step={5}
-                                helpContent={{
-                                    description: "Hourly billing rate for CRSS's direct services (typically lower than supervisor).",
-                                    impact: "Enables peer-led billing revenue stream."
-                                }}
-                            />
-                            <SteppedNumberInput
-                                label="Util %"
-                                value={assumptions.peerUtilization * 100}
-                                onChange={(v) => handleChange('peerUtilization', v / 100)}
-                                suffix="%"
-                                step={5}
-                                min={0}
-                                max={100}
-                                helpContent={{
-                                    description: "Percentage of CRSS time dedicated to billable activities.",
-                                    impact: "Conservative default: 0%. Can be increased for hybrid models."
-                                }}
-                            />
+                        {/* Header with Master Switch */}
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Peer (CRSS) Revenue</h4>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <span className="text-[10px] text-slate-400 uppercase font-bold">
+                                    {assumptions.enablePeerBilling ? 'Active' : 'Inactive'}
+                                </span>
+                                <input
+                                    type="checkbox"
+                                    checked={assumptions.enablePeerBilling}
+                                    onChange={(e) => onChange({ ...assumptions, enablePeerBilling: e.target.checked })}
+                                    className="toggle-checkbox accent-emerald-500 w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                />
+                            </label>
+                        </div>
+
+                        {/* Control Panel - Only Visible if Active */}
+                        <div className={`transition-all duration-300 ${!assumptions.enablePeerBilling ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
+                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                <SteppedNumberInput
+                                    label="Rate ($)"
+                                    value={assumptions.peerBillableRate}
+                                    onChange={(v) => handleChange('peerBillableRate', v)}
+                                    prefix="$"
+                                    step={5}
+                                    helpContent={{
+                                        description: "Hourly billing rate for CRSS's direct services (typically lower than supervisor).",
+                                        impact: "Enables peer-led billing revenue stream."
+                                    }}
+                                />
+                                <SteppedNumberInput
+                                    label="Util %"
+                                    value={assumptions.peerUtilization * 100}
+                                    onChange={(v) => handleChange('peerUtilization', v / 100)}
+                                    suffix="%"
+                                    step={5}
+                                    min={0}
+                                    max={100}
+                                    helpContent={{
+                                        description: "Percentage of CRSS time dedicated to billable activities.",
+                                        impact: "Conservative default: 0%. Can be increased for hybrid models."
+                                    }}
+                                />
+                            </div>
+
+                            {/* Credentialed FTEs Control */}
+                            <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg">
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                                        Credentialed FTEs
+                                    </label>
+                                    <span className="text-[10px] text-slate-400">Who can bill?</span>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="number"
+                                        value={assumptions.credentialedPeerFTEs === undefined ? '' : assumptions.credentialedPeerFTEs}
+                                        onChange={(e) => {
+                                            const val = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                                            onChange({ ...assumptions, credentialedPeerFTEs: val });
+                                        }}
+                                        placeholder="All"
+                                        className="w-20 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-sm text-right focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                                        Leave blank to bill for <strong>all</strong> non-grant staff.
+                                        Enter <strong>0</strong> to track revenue potential without applying it.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -173,24 +173,34 @@ export function calculateBillableImpact(
  * Returns the monthly cost savings from grant-funded slots.
  */
 export function calculateGrantOffset(
+    totalCRS: number,
     totalCRSS: number,
-    grantSlots: number,
+    grantSlotsCRS: number,
+    grantSlotsCRSS: number,
+    crsWage: number,
     crssWage: number,
     benefitLoad: number,
     fteHours: number
 ): { grantUsed: number; grantSavings: number; billableFTEs: number } {
-    // How many slots does the grant actually cover?
-    const grantUsed = Math.min(totalCRSS, grantSlots);
+    // 1. Frontline CRS Grants
+    const crsGrantUsed = Math.min(totalCRS, grantSlotsCRS);
+    const crsLoadedWage = crsWage * (1 + benefitLoad);
+    const crsSavings = crsGrantUsed * crsLoadedWage * fteHours;
 
-    // How many FTEs hit the hospital P&L?
-    const billableFTEs = Math.max(0, totalCRSS - grantSlots);
+    // 2. Supervisor CRSS Grants
+    const crssGrantUsed = Math.min(totalCRSS, grantSlotsCRSS);
+    const crssLoadedWage = crssWage * (1 + benefitLoad);
+    const crssSavings = crssGrantUsed * crssLoadedWage * fteHours;
 
-    // Calculate the loaded monthly cost per CRSS
-    const loadedWage = crssWage * (1 + benefitLoad);
-    const monthlyCostPerFTE = loadedWage * fteHours;
+    // 3. Totals
+    const grantUsed = crsGrantUsed + crssGrantUsed;
+    const grantSavings = crsSavings + crssSavings;
 
-    // Grant savings = what we would have paid without the grant
-    const grantSavings = grantUsed * monthlyCostPerFTE;
+    // Billable FTEs (CRSS only, for Peer Revenue)
+    // Only non-grant CRSS can bill? Or can grant-funded CRSS bill?
+    // Usually grant-funded positions CANNOT bill Medicaid (double dipping).
+    // So Billable CRSS = Total CRSS - Grant CRSS.
+    const billableFTEs = Math.max(0, totalCRSS - grantSlotsCRSS);
 
     return { grantUsed, grantSavings, billableFTEs };
 }
@@ -203,11 +213,21 @@ export function calculatePeerRevenue(
     billableCRSS: number,
     peerRate: number,
     peerUtilization: number,
-    fteHours: number
+    fteHours: number,
+    enablePeerBilling: boolean,
+    credentialedFTEs?: number
 ): number {
-    // Only staff the hospital is paying for can generate billable revenue
+    // Safety Valve: If billing is disabled, return 0
+    if (!enablePeerBilling) return 0;
+
+    // Credentialing Filter: Limit billable staff to credentialed count (if specified)
+    // If credentialedFTEs is undefined, assume ALL billable CRSS are credentialed.
+    const eligibleFTEs = credentialedFTEs !== undefined
+        ? Math.min(billableCRSS, credentialedFTEs)
+        : billableCRSS;
+
     const billableHoursPerFTE = fteHours * peerUtilization;
-    const peerRevenue = billableCRSS * billableHoursPerFTE * peerRate;
+    const peerRevenue = eligibleFTEs * billableHoursPerFTE * peerRate;
 
     return peerRevenue;
 }
@@ -262,9 +282,13 @@ export function computeScenarioMetrics(
     const freedSupervisorHours = compliance.freedHours;
 
     // 4. NEW: Grant Offset & Peer Revenue (Hybrid Funding)
+    // 4. NEW: Grant Offset & Peer Revenue (Hybrid Funding)
     const grantOffset = calculateGrantOffset(
+        scenario.frontlineCrsCount,
         scenario.crssCount,
-        global.grantFundedSlots,
+        global.grantSlotsCRS,
+        global.grantSlotsCRSS,
+        global.crsBaseHourly,
         global.crssBaseHourly,
         global.benefitLoad,
         global.fteHoursPerMonth
@@ -279,7 +303,9 @@ export function computeScenarioMetrics(
         grantOffset.billableFTEs,
         global.peerBillableRate,
         global.peerUtilization,
-        global.fteHoursPerMonth
+        global.fteHoursPerMonth,
+        global.enablePeerBilling,
+        global.credentialedPeerFTEs
     );
 
     // SENSITIVITY TOGGLE: Revenue
@@ -313,7 +339,10 @@ export function computeScenarioMetrics(
         : laborEfficiencySavings;
 
     // 8. Net Monthly Steady State (Hard)
-    const netMonthlySteadyStateHard = realizedRevenue - payrollDeltaLoaded + hardLaborSavings;
+    // 8. Net Monthly Steady State (Hard)
+    // Formula: Revenue - (Payroll_Increase - Grant_Savings) + Hard_Labor_Savings
+    // We subtract Grant Savings from the Payroll Delta to get the "Net Cost Increase"
+    const netMonthlySteadyStateHard = realizedRevenue - (payrollDeltaLoaded - grantOffset.grantSavings) + hardLaborSavings;
 
     // 9. Onboarding
     const onboardingCost = calculateOnboardingCost(scenario, hr, baseline);
