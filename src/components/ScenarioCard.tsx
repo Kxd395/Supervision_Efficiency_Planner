@@ -310,109 +310,106 @@ export const ScenarioCard: React.FC<Props> = ({
                     </div>
                 )}
             </div>
-        </>)
-}
-        </div >
-        </div >
-    );
+            );
+            );
 
-return (
-    <Card className={`relative ${metrics.safetyStatus === 'Overloaded' ? 'ring-2 ring-rose-500' : ''}`}>
-        <div className="flex justify-between items-start mb-4">
-            <div>
-                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">{scenario.label}</h2>
-                {scenario.description && <p className="text-xs text-slate-500 dark:text-slate-400">{scenario.description}</p>}
-            </div>
-            <div className="flex gap-1">
-                {metrics.complianceStatus === 'Non-Compliant' && <Badge label="Non-Compliant" color="rose" />}
-                {metrics.complianceStatus === 'High Risk' && <Badge label="High Risk" color="rose" />}
-                {metrics.complianceStatus === 'At Capacity' && <Badge label="At Capacity" color="amber" />}
-                {metrics.safetyStatus === 'Overloaded' && metrics.complianceStatus !== 'High Risk' && <Badge label="Unsafe Ratio" color="rose" />}
-                {(metrics.complianceStatus === 'OK' || metrics.complianceStatus === 'Optimized' as any) && metrics.safetyStatus === 'OK' && (
-                    metrics.netMonthlySteadyState < 0 ?
-                        <Badge label="Strategic Investment" color="blue" /> :
-                        <Badge label="Optimized" color="emerald" />
-                )}
-            </div>
-        </div>
-
-        {/* Staffing Inputs */}
-        <div className="space-y-3 bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
-            <h3 className="font-semibold text-slate-700 dark:text-slate-200 text-sm border-b border-slate-200 dark:border-slate-800 pb-1 mb-2">Staffing Configuration</h3>
-            <SteppedNumberInput
-                label="Frontline CRS Count"
-                value={scenario.frontlineCrsCount}
-                onChange={(v) => handleChange('frontlineCrsCount', v)}
-                min={0}
-                step={1}
-                className="w-full"
-                inputWrapperClassName="bg-white dark:bg-slate-800"
-            />
-            <SteppedNumberInput
-                label="CRSS Count"
-                value={scenario.crssCount}
-                onChange={(v) => handleChange('crssCount', v)}
-                min={0}
-                step={1}
-                className="w-full"
-                inputWrapperClassName="bg-white dark:bg-slate-800"
-            />
-            {scenario.crssCount > 0 && (
-                <label className="flex items-center justify-between text-sm pt-2 border-t border-slate-200 dark:border-slate-800 mt-2">
-                    <span className="text-slate-600 dark:text-slate-400">Internal Promotion?</span>
-                    <input
-                        type="checkbox"
-                        checked={scenario.isInternalPromotion}
-                        onChange={(e) => handleChange('isInternalPromotion', e.target.checked)}
-                        className="w-4 h-4 text-indigo-600 rounded bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-                    />
-                </label>
-            )}
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 gap-4 items-start">
-            {renderMetrics()}
-        </div>
-
-        {/* Advanced Overrides */}
-        <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
-            <button
-                onClick={() => setShowOverrides(!showOverrides)}
-                className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-300 font-medium flex items-center"
-            >
-                {showOverrides ? 'Hide Advanced Settings' : 'Show Advanced Settings'}
-            </button>
-
-            {showOverrides && (
-                <div className="mt-3 space-y-3 bg-slate-50 dark:bg-slate-900 p-3 rounded border border-slate-200 dark:border-slate-800 text-xs">
-                    <p className="text-slate-500 dark:text-slate-400 italic mb-2">Override global defaults for this scenario only.</p>
-
-                    <NumberInput
-                        label="CRS Wage Override"
-                        value={scenario.overrides?.wages?.crs ?? globalDefaults.crsBaseHourly}
-                        onChange={(v) => handleOverrideChange('wages.crs', v)}
-                        prefix="$"
-                        step={0.5}
-                        className="text-xs"
-                    />
-                    <NumberInput
-                        label="CRSS Wage Override"
-                        value={scenario.overrides?.wages?.crss ?? globalDefaults.crssBaseHourly}
-                        onChange={(v) => handleOverrideChange('wages.crss', v)}
-                        prefix="$"
-                        step={0.5}
-                        className="text-xs"
-                    />
-                    <NumberInput
-                        label="Billable Rate Override"
-                        value={scenario.overrides?.billableRate ?? globalDefaults.supervisorBillableRate}
-                        onChange={(v) => handleOverrideChange('billableRate', v)}
-                        prefix="$"
-                        className="text-xs"
-                    />
+            return (
+            <Card className={`relative ${metrics.safetyStatus === 'Overloaded' ? 'ring-2 ring-rose-500' : ''}`}>
+                <div className="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">{scenario.label}</h2>
+                        {scenario.description && <p className="text-xs text-slate-500 dark:text-slate-400">{scenario.description}</p>}
+                    </div>
+                    <div className="flex gap-1">
+                        {metrics.complianceStatus === 'Non-Compliant' && <Badge label="Non-Compliant" color="rose" />}
+                        {metrics.complianceStatus === 'High Risk' && <Badge label="High Risk" color="rose" />}
+                        {metrics.complianceStatus === 'At Capacity' && <Badge label="At Capacity" color="amber" />}
+                        {metrics.safetyStatus === 'Overloaded' && metrics.complianceStatus !== 'High Risk' && <Badge label="Unsafe Ratio" color="rose" />}
+                        {(metrics.complianceStatus === 'OK' || metrics.complianceStatus === 'Optimized' as any) && metrics.safetyStatus === 'OK' && (
+                            metrics.netMonthlySteadyState < 0 ?
+                                <Badge label="Strategic Investment" color="blue" /> :
+                                <Badge label="Optimized" color="emerald" />
+                        )}
+                    </div>
                 </div>
-            )}
-        </div>
-    </Card>
-);
+
+                {/* Staffing Inputs */}
+                <div className="space-y-3 bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                    <h3 className="font-semibold text-slate-700 dark:text-slate-200 text-sm border-b border-slate-200 dark:border-slate-800 pb-1 mb-2">Staffing Configuration</h3>
+                    <SteppedNumberInput
+                        label="Frontline CRS Count"
+                        value={scenario.frontlineCrsCount}
+                        onChange={(v) => handleChange('frontlineCrsCount', v)}
+                        min={0}
+                        step={1}
+                        className="w-full"
+                        inputWrapperClassName="bg-white dark:bg-slate-800"
+                    />
+                    <SteppedNumberInput
+                        label="CRSS Count"
+                        value={scenario.crssCount}
+                        onChange={(v) => handleChange('crssCount', v)}
+                        min={0}
+                        step={1}
+                        className="w-full"
+                        inputWrapperClassName="bg-white dark:bg-slate-800"
+                    />
+                    {scenario.crssCount > 0 && (
+                        <label className="flex items-center justify-between text-sm pt-2 border-t border-slate-200 dark:border-slate-800 mt-2">
+                            <span className="text-slate-600 dark:text-slate-400">Internal Promotion?</span>
+                            <input
+                                type="checkbox"
+                                checked={scenario.isInternalPromotion}
+                                onChange={(e) => handleChange('isInternalPromotion', e.target.checked)}
+                                className="w-4 h-4 text-indigo-600 rounded bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                            />
+                        </label>
+                    )}
+                </div>
+
+                <div className="mt-6 grid grid-cols-1 gap-4 items-start">
+                    {renderMetrics()}
+                </div>
+
+                {/* Advanced Overrides */}
+                <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <button
+                        onClick={() => setShowOverrides(!showOverrides)}
+                        className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-300 font-medium flex items-center"
+                    >
+                        {showOverrides ? 'Hide Advanced Settings' : 'Show Advanced Settings'}
+                    </button>
+
+                    {showOverrides && (
+                        <div className="mt-3 space-y-3 bg-slate-50 dark:bg-slate-900 p-3 rounded border border-slate-200 dark:border-slate-800 text-xs">
+                            <p className="text-slate-500 dark:text-slate-400 italic mb-2">Override global defaults for this scenario only.</p>
+
+                            <NumberInput
+                                label="CRS Wage Override"
+                                value={scenario.overrides?.wages?.crs ?? globalDefaults.crsBaseHourly}
+                                onChange={(v) => handleOverrideChange('wages.crs', v)}
+                                prefix="$"
+                                step={0.5}
+                                className="text-xs"
+                            />
+                            <NumberInput
+                                label="CRSS Wage Override"
+                                value={scenario.overrides?.wages?.crss ?? globalDefaults.crssBaseHourly}
+                                onChange={(v) => handleOverrideChange('wages.crss', v)}
+                                prefix="$"
+                                step={0.5}
+                                className="text-xs"
+                            />
+                            <NumberInput
+                                label="Billable Rate Override"
+                                value={scenario.overrides?.billableRate ?? globalDefaults.supervisorBillableRate}
+                                onChange={(v) => handleOverrideChange('billableRate', v)}
+                                prefix="$"
+                                className="text-xs"
+                            />
+                        </div>
+                    )}
+                </div>
+            </Card>
+            );
 };
