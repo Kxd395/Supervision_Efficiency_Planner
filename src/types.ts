@@ -104,6 +104,7 @@ export interface Scenario {
     isInternalPromotion: boolean;
     isTieredModel?: boolean;
     overrides?: ScenarioOverrides;
+    reinvestmentTask?: string; // e.g. "Outpatient Counseling"
 }
 
 export interface ComputedMetrics {

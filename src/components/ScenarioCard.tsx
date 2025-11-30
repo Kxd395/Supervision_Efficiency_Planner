@@ -108,6 +108,26 @@ export const ScenarioCard: React.FC<Props> = ({
                 </div>
             </div>
 
+            {/* 3b. CLINICAL CAPACITY (Restored Hours) */}
+            {metrics.freedSupervisorHours > 0 && (
+                <div className="flex items-center gap-2 pt-4">
+                    <div className="p-1.5 bg-indigo-500/10 rounded border border-indigo-500/20">
+                        {/* Clock / Doctor Icon */}
+                        <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div className="text-xs">
+                        <span className="block font-bold text-indigo-100">
+                            {metrics.freedSupervisorHours % 1 === 0 ? metrics.freedSupervisorHours.toLocaleString() : metrics.freedSupervisorHours.toFixed(1)} Hours / Month
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                            Modeled monthly hours restored for {scenario.reinvestmentTask || "clinical care"}
+                        </span>
+                    </div>
+                </div>
+            )}
+
             {/* 4. VALUE GENERATED (Grant Shield + Revenue Split) */}
             <div className="space-y-4 flex-grow">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Value Generated</h4>
