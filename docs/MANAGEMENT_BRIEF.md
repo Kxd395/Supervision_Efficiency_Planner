@@ -38,6 +38,11 @@ The Break-Even analysis incorporates one-time transition costs.
 *   **Logic**: `Break-Even Months = Transition Costs / Net Monthly Hard Cash Flow`
 *   **Consideration**: Transition costs should include recruiting fees, training hours, and administrative setup. Accurately capturing these one-time expenses ensures a realistic timeline for ROI.
 
+### 5. Hybrid Funding Strategy (Grant + Billable)
+The model supports a sophisticated "Layered Funding" approach.
+*   **Logic**: `Grant Slots` are filled first (Cost = $0). Additional hires are treated as `Billable Peers` (Revenue = Gap Fill).
+*   **Impact**: This allows organizations to model "Expansion" scenarios (Scenario C) where the first few hires are grant-funded, and subsequent hires pay for themselves through billing revenue. This "Grant Shield" de-risks the initial investment.
+
 ---
 
 ## UI/UX Design Philosophy
@@ -77,3 +82,4 @@ The "Delegation Split" layout in the Supervision Rules panel visually mirrors th
 | **Headcount** | Static | Static (Headcount Neutral) | +1 FTE |
 | **Operational Risk** | Burnout / Turnover | Caseload Displacement | Higher Initial Cash Outlay |
 | **Financial Upside** | None (Status Quo) | High (Low Cost, High Revenue) | Moderate (Higher Cost, High Revenue) |
+| **Grant Potential** | N/A | Low (Usually Operating Budget) | High (New Positions = New Grants) |

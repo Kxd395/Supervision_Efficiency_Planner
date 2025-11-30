@@ -171,10 +171,11 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
                                     dy={10}
                                 />
                                 <YAxis
-                                    tickFormatter={(value) => `$${value}`}
+                                    tickFormatter={(value) => formatMoney(value)}
                                     stroke="#94a3b8"
-                                    fontSize={12}
-                                    domain={[dataMin => Math.min(0, dataMin * 1.2), dataMax => Math.max(0, dataMax * 1.2)]}
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
                                 />
                                 <Tooltip
                                     cursor={{ fill: 'transparent' }}
@@ -227,9 +228,11 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
                                     dy={10}
                                 />
                                 <YAxis
-                                    tickFormatter={(value) => `$${value}`}
+                                    tickFormatter={(value) => formatMoney(value)}
                                     stroke="#94a3b8"
-                                    fontSize={12}
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
                                 />
                                 <Tooltip
                                     cursor={{ fill: 'transparent' }}

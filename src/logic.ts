@@ -339,10 +339,13 @@ export function computeScenarioMetrics(
         : laborEfficiencySavings;
 
     // 8. Net Monthly Steady State (Hard)
-    // 8. Net Monthly Steady State (Hard)
     // Formula: Revenue - (Payroll_Increase - Grant_Savings) + Hard_Labor_Savings
-    // We subtract Grant Savings from the Payroll Delta to get the "Net Cost Increase"
-    const netMonthlySteadyStateHard = realizedRevenue - (payrollDeltaLoaded - grantOffset.grantSavings) + hardLaborSavings;
+    // We break it down to be explicit as requested:
+    const totalNewIncome = realizedRevenue + grantOffset.grantSavings;
+    const totalNewCost = payrollDeltaLoaded; // This is the GROSS increase
+
+    // Final Net calculation
+    const netMonthlySteadyStateHard = (totalNewIncome - totalNewCost) + hardLaborSavings;
 
     // 9. Onboarding
     const onboardingCost = calculateOnboardingCost(scenario, hr, baseline);
@@ -421,7 +424,7 @@ export function computeScenarioMetrics(
         grantFTEsUsed: grantOffset.grantUsed,
 
         // New CFO Metrics
-        hardMonthlyCashFlow: realizedRevenue - payrollDeltaLoaded,
+        hardMonthlyCashFlow: totalNewIncome - totalNewCost,
         hardLaborSavings,
         softValueTotal,
         netMonthlySteadyStateHard,

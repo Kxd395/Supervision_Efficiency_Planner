@@ -125,7 +125,7 @@ $$ \text{Savings} = \text{Total Staff} \times \text{Reduction Rate (10\%)} \time
 ### Net Monthly Steady State (Hard)
 This is the "CFO Number"—the actual cash impact on the P&L.
 
-$$ \text{Net Hard} = (\text{Sup Revenue} + \text{Peer Revenue}) - (\text{Payroll Delta} - \text{Grant Savings}) $$
+$$ \text{Net Hard} = (\text{Sup Revenue} + \text{Peer Revenue} + \text{Grant Savings}) - \text{Payroll Delta} $$
 
 *   If positive: The change pays for itself immediately.
 *   If negative: The efficiency gains are not enough to cover the new hire costs (yet).

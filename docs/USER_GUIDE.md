@@ -147,12 +147,17 @@ The top dashboard shows the key financial metrics for each scenario:
 - **Hard Cash**: Actual revenue or cost savings (conservative)
 - **Soft Value**: Calculated savings not yet realized as cash
 - **Compliance Status**: Whether the supervision ratios meet regulatory requirements
+- **Revenue Split**: Visualizes the composition of revenue (Supervisor Repurposing vs. Peer Billing)
 
 **Break-Even Analysis**
 - Shows the number of months to recover transition costs
 - Accounts for one-time expenses (recruiting, onboarding, training)
 
 ### Scenario Modeling
+
+**Visual Indicators**
+- **Grant Shield**: A green shield icon appears when Grant Funding is successfully offsetting costs.
+- **Revenue Bars**: Stacked bars show the contribution of Supervisor vs. Peer revenue streams.
 
 Compare three scenarios side-by-side:
 
@@ -221,11 +226,14 @@ If break-even exceeds your acceptable timeline:
 ### Data Persistence
 Your inputs are automatically saved to your browser's local storage. They will persist across page refreshes and browser sessions.
 
-### Exporting Results
-Currently, the application displays results on-screen. To share findings:
-- Take screenshots of the Executive Summary dashboard
-- Document key assumptions in a separate memo
-- Use the CALCULATIONS.md and MANAGEMENT_BRIEF.md docs for technical details
+### Exporting & Reporting (Print View)
+The application features a built-in **Executive Report** mode.
+1.  Click the **Print Icon** in the top header (or press `Cmd+P` / `Ctrl+P`).
+2.  The view will transform into a clean, white-paper report suitable for Board presentations.
+    - Interactive elements (buttons, sliders) are hidden.
+    - A professional "Executive Summary" header is added.
+    - Staffing inputs are converted to static summary tables.
+3.  Save as **PDF** using your browser's print dialog.
 
 ---
 
