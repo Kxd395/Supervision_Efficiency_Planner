@@ -160,15 +160,56 @@ export function calculateBillableImpact(
     const billableRate = scenario.overrides?.billableRate ?? global.supervisorBillableRate;
     const utilization = scenario.overrides?.utilization ?? global.utilizationPercent;
 
-    // Cap new hours by demand capacity
-    const potentialHours = Math.min(freedHours, demand.utilizationCap);
-
-    // Apply utilization factor (efficiency)
-    const realizedHours = potentialHours * utilization;
+    // Apply utilization factor (efficiency) to freed hours
+    const realizedHours = freedHours * utilization;
 
     const realizedRevenue = realizedHours * billableRate;
 
     return { realizedHours, realizedRevenue };
+}
+
+/**
+ * Calculates grant offset using "First-In Priority" logic.
+ * Returns the monthly cost savings from grant-funded slots.
+ */
+export function calculateGrantOffset(
+    totalCRSS: number,
+    grantSlots: number,
+    crssWage: number,
+    benefitLoad: number,
+    fteHours: number
+): { grantUsed: number; grantSavings: number; billableFTEs: number } {
+    // How many slots does the grant actually cover?
+    const grantUsed = Math.min(totalCRSS, grantSlots);
+
+    // How many FTEs hit the hospital P&L?
+    const billableFTEs = Math.max(0, totalCRSS - grantSlots);
+
+    // Calculate the loaded monthly cost per CRSS
+    const loadedWage = crssWage * (1 + benefitLoad);
+    const monthlyCostPerFTE = loadedWage * fteHours;
+
+    // Grant savings = what we would have paid without the grant
+    const grantSavings = grantUsed * monthlyCostPerFTE;
+
+    return { grantUsed, grantSavings, billableFTEs };
+}
+
+/**
+ * Calculates peer-generated revenue (e.g., H0038 billing).
+ * Uses "Gap Fill" logic: only billable FTEs generate revenue.
+ */
+export function calculatePeerRevenue(
+    billableCRSS: number,
+    peerRate: number,
+    peerUtilization: number,
+    fteHours: number
+): number {
+    // Only staff the hospital is paying for can generate billable revenue
+    const billableHoursPerFTE = fteHours * peerUtilization;
+    const peerRevenue = billableCRSS * billableHoursPerFTE * peerRate;
+
+    return peerRevenue;
 }
 
 /**
@@ -220,22 +261,43 @@ export function computeScenarioMetrics(
     // 3. Freed Hours
     const freedSupervisorHours = compliance.freedHours;
 
-    // 4. Financials (CFO-Proof Logic)
-    // Revenue = Freed Hours * Utilization * Rate
-    let realizedRevenue = freedSupervisorHours * global.supervisorBillableRate * global.utilizationPercent;
+    // 4. NEW: Grant Offset & Peer Revenue (Hybrid Funding)
+    const grantOffset = calculateGrantOffset(
+        scenario.crssCount,
+        global.grantFundedSlots,
+        global.crssBaseHourly,
+        global.benefitLoad,
+        global.fteHoursPerMonth
+    );
+
+    // 5. Revenue Streams (Dual Source)
+    // A. Supervisor Revenue (from freed hours)
+    let supervisorRevenue = freedSupervisorHours * global.supervisorBillableRate * global.utilizationPercent;
+
+    // B. Peer Revenue (from billable CRSS only - "Gap Fill" logic)
+    let peerRevenue = calculatePeerRevenue(
+        grantOffset.billableFTEs,
+        global.peerBillableRate,
+        global.peerUtilization,
+        global.fteHoursPerMonth
+    );
 
     // SENSITIVITY TOGGLE: Revenue
     if (!enabledFactors.includeRevenue) {
-        realizedRevenue = 0;
+        supervisorRevenue = 0;
+        peerRevenue = 0;
     }
 
-    // 5. Labor Efficiency Savings (Arbitrage)
+    // C. Total Realized Revenue
+    const realizedRevenue = supervisorRevenue + peerRevenue;
+
+    // 6. Labor Efficiency Savings (Arbitrage)
     const supervisorLoadedRate = global.supervisorBaseHourly * (1 + global.benefitLoad);
     const crssLoadedRate = global.crssBaseHourly * (1 + global.benefitLoad);
     const arbitragePerHour = Math.max(0, supervisorLoadedRate - crssLoadedRate);
     const laborEfficiencySavings = freedSupervisorHours * arbitragePerHour;
 
-    // 6. Hard Labor Savings (Cost Avoidance)
+    // 7. Hard Labor Savings (Cost Avoidance)
     // Logic: If we are realizing revenue, we can't also claim we are saving the supervisor's salary (double dip).
     // Efficiency savings (Hard) only exist if we are NOT repurposing the hours for revenue (e.g. cutting FTE).
     // However, for this model, we assume "Freed Hours" are repurposed.
@@ -250,13 +312,13 @@ export function computeScenarioMetrics(
         ? 0
         : laborEfficiencySavings;
 
-    // 7. Net Monthly Steady State (Hard)
+    // 8. Net Monthly Steady State (Hard)
     const netMonthlySteadyStateHard = realizedRevenue - payrollDeltaLoaded + hardLaborSavings;
 
-    // 8. Onboarding
+    // 9. Onboarding
     const onboardingCost = calculateOnboardingCost(scenario, hr, baseline);
 
-    // 9. Retention Savings (Soft)
+    // 10. Retention Savings (Soft)
     let retentionSavings = 0;
     if (scenario.id !== 'A') {
         const totalStaff = scenario.frontlineCrsCount + scenario.crssCount;
@@ -271,19 +333,19 @@ export function computeScenarioMetrics(
         retentionSavings = 0;
     }
 
-    // 10. Soft Value Total
+    // 11. Soft Value Total
     // If Revenue > 0, Efficiency is Soft.
     const softEfficiency = realizedRevenue > 0 ? laborEfficiencySavings : 0;
     const softValueTotal = retentionSavings + softEfficiency;
 
-    // 11. Aggregates
+    // 12. Aggregates
     const netMonthlySteadyStateSoft = softValueTotal;
     const netMonthlySteadyStateTotal = netMonthlySteadyStateHard + netMonthlySteadyStateSoft;
 
     // Legacy support
     const netMonthlySteadyState = netMonthlySteadyStateHard;
 
-    // 12. Transition Cost (One-Time)
+    // 13. Transition Cost (One-Time)
     let transitionCost = 0;
     if (scenario.isInternalPromotion) {
         transitionCost = global.crsBaseHourly * 1.5 * 160;
@@ -320,9 +382,14 @@ export function computeScenarioMetrics(
         clinicalHoursRepurposed: freedSupervisorHours,
 
         realizedRevenue,
+        supervisorRevenue, // NEW: Breakdown
+        peerRevenue, // NEW: Breakdown
         retentionSavings,
         laborEfficiencySavings,
 
+        // NEW: Grant/Hybrid Funding Metrics
+        grantSavings: grantOffset.grantSavings,
+        grantFTEsUsed: grantOffset.grantUsed,
 
         // New CFO Metrics
         hardMonthlyCashFlow: realizedRevenue - payrollDeltaLoaded,

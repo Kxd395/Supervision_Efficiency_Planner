@@ -121,13 +121,19 @@ export interface ComputedMetrics {
     // Detailed Components
     totalFte: number;
     freedSupervisorHours: number;
-    realizedRevenue: number;
+    realizedRevenue: number; // Total revenue (supervisor + peer)
+    supervisorRevenue: number; // NEW: Revenue from supervisor repurposing
+    peerRevenue: number; // NEW: Revenue from peer billing (H0038)
     laborEfficiencySavings: number;
     retentionSavings: number;
     payrollDeltaLoaded: number;
     clinicalHoursRepurposed: number;
     payrollBase: number;
     payrollLoaded: number;
+
+    // Grant/Hybrid Funding (NEW)
+    grantSavings: number; // "Shadow" savings from grant-funded slots
+    grantFTEsUsed: number; // How many FTEs the grant is covering
 
     // Compliance & Risk
     requiredHours: number;
