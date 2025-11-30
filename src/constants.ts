@@ -9,12 +9,12 @@ export const DEFAULT_GLOBAL_ASSUMPTIONS: GlobalAssumptions = {
 
     grantFundedSlots: 0, // Default: Pure fee-for-service
 
-    supervisorBillableRate: 150,
+    supervisorBillableRate: 135, // CBH (Philadelphia) standard for 90837
     supervisorTargetBillableHours: 20,
-    utilizationPercent: 0.75,
+    utilizationPercent: 0.65, // CBH-typical supervisor productivity
     revenueRealizationPercent: 95,
 
-    peerBillableRate: 65, // CRSS billing rate (typically lower than supervisor)
+    peerBillableRate: 55, // CBH (Philadelphia) H0038 @ $13.75/unit
     peerUtilization: 0, // Default: Conservative 0% (can be enabled)
 
     reinvestmentTask: "Outpatient Counseling"

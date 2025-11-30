@@ -295,3 +295,82 @@ Many PA providers utilize county (SCA) or state (OMHSAS) grants to fund specific
 ---
 
 *Last Updated: November 2024*
+
+---
+
+# Appendix B: CBH (Philadelphia) Billing Configuration
+
+**Payer:** Community Behavioral Health (CBH)  
+**Region:** Philadelphia County  
+**Service Focus:** Peer Support (CPS) & Outpatient
+
+Use these specific values in the `GlobalAssumptionsPanel` to align the model with standard CBH reimbursement rates.
+
+## 1. Peer Support (CPS) Settings
+
+*Configure these in the **"Peer (CRSS) Revenue"** section.*
+
+| Input Field | CBH Value | Logic / Calculation |
+|:---|:---|:---|
+| **Billable Rate ($)** | **$55.00** | **Code:** H0038 (Peer Support Services). <br>**Rate:** Approx. **$13.75 per unit** (15 mins). <br>*Math:* $13.75 × 4 units = $55.00/hr. |
+| **Utilization (%)** | **40% - 45%** | **Target:** 20 hours/week face-to-face. <br>*Note:* CBH limits peers to **16 units (4 hours)** per day per member. |
+
+**CBH Specific Rules:**
+
+- **Documentation:** CBH audits H0038 heavily for "medical necessity." Ensure your utilization target accounts for non-billable documentation time (approx. 10 mins per hour of service).
+- **Supervision:** CBH mandates weekly supervision. The "Supervision Rules" in your model should be set to at least **1 hour Individual** per week to remain compliant.
+
+---
+
+## 2. Clinical Supervisor (LPC/LCSW) Settings
+
+*Configure these in the **"Supervisor Revenue"** section.*
+
+| Input Field | CBH Value | Logic / Calculation |
+|:---|:---|:---|
+| **Billable Rate ($)** | **$135.00** | **Code:** 90837 (Indiv Psychotherapy, 60 min). <br>CBH rates for licensed clinicians typically range **$130 - $140**. |
+| **Utilization (%)** | **65%** | Supervisors carrying a caseload usually achieve 65% productivity due to administrative overhead (TCM monitoring, audit prep). |
+
+---
+
+## 3. Hybrid Funding (Grants in Philly)
+
+*Configure this in the **"Grant Availability"** section.*
+
+In the CBH network, providers often layer grants from **DBHIDS** (Department of Behavioral Health) on top of CBH billing.
+
+- **DBHIDS Grants:** Often cover "program startup" or specific populations (e.g., homeless outreach).
+- **The "Gap Fill" Strategy:**
+  - Set **Grant Slots** to the number of FTEs funded by DBHIDS.
+  - The model will automatically apply CBH billing revenue ($55/hr) to any staff hired *above* that grant limit.
+
+---
+
+## 4. Quick-Code Reference for CBH inputs
+
+| UI Label | Value | Notes |
+|:---|:---|:---|
+| `Peer Billable Rate` | **55** | Based on CBH H0038 ($13.75/unit) |
+| `Sup. Billable Rate` | **135** | Based on CBH 90837 |
+| `Internal Max Ratio` | **1:7** | CBH prefers tighter ratios than the state max of 1:10. |
+
+---
+
+## 5. Documentation & Compliance Notes
+
+### H0038 Best Practices for CBH
+CBH requires the following for H0038 billing:
+- **Clear medical necessity** tied to treatment plan goals
+- **Face-to-face documentation** (not phone/text support unless crisis)
+- **Weekly supervision notes** from licensed clinical staff
+- **16-unit daily cap** per member enforced through claims editing
+
+### Common Audit Triggers
+- Billing over 20 units per day across all members (system flag)
+- Missing supervision documentation
+- Vague progress notes without goal linkage
+- Duplicate billing with other providers for same member/date
+
+---
+
+*Last Updated: November 2024*
