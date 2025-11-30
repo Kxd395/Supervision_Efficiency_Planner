@@ -1,841 +1,284 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 
-type ScenarioKey = "A" | "B" | "C";
+import type {
+  GlobalAssumptions,
+  DemandAssumptions,
+  SupervisionRules,
+  HRRiskAssumptions,
+  Scenario,
+  ComputedMetrics,
+  EnabledFactors
+} from "./types";
+import {
+  DEFAULT_GLOBAL_ASSUMPTIONS,
+  DEFAULT_DEMAND_ASSUMPTIONS,
+  DEFAULT_SUPERVISION_RULES,
+  DEFAULT_HR_RISK_ASSUMPTIONS,
+  DEFAULT_SCENARIOS,
+} from "./constants";
+import { computeScenarioMetrics } from "./logic";
+import { usePersistedState } from "./hooks/usePersistedState";
 
-type Scenario = {
-  label: string;
-  frontlineCrs: number;
-  crssCount: number;
-  isPromotion?: boolean; // Only for Scenario C
-};
+import { ScenarioGrid } from "./components/ScenarioGrid";
+import { ExecutiveSummary } from "./components/ExecutiveSummary";
+import { AssumptionsDeck } from "./components/AssumptionsDeck";
+import { SettingsModal } from "./components/SettingsModal";
 
-type Config = {
-  currentIndivPerCrsClinical: number;
-  currentGroupsClinical: number;
-  crssModelIndivPerCrsClinical: number;
-  crssModelIndivPerCrsCrss: number;
-  crssModelGroupsBoth: number;
-  crssModelGroupsCrssOnly: number;
-  crssModelClinicalPerCrss: number;
-  crssCapacity: number; // Max CRS per CRSS
-};
 
-type Rates = {
-  clinicalHourly: number; // Restored
-  clinicalBillable: number;
-  crssHourly: number;
-  crsHourly: number;
-};
-
-type YourPay = {
-  baseHoursPerMonth: number;
-};
-
-type ComputedScenario = {
-  clinicalHours: number;
-  crssHours: number;
-
-  // Costs & Revenue
-  clinicalLaborCost: number; // Restored
-  lostRevenue: number; // Opportunity Cost
-  baseImpactForBenefit: number; // Added for UI breakdown
-  hoursDelta: number; // Added for UI context (Base Hours - Current Hours)
-  totalSupervisionImpact: number; // Labor + Lost Revenue + Payroll Impact
-
-  // Staffing Impact
-  payrollImpact: number; // Change in CRSS Premium vs Scenario A
-
-  // Comparison
-  netMonthlyBenefit: number | null; // Positive = Good
-  isCapacityWarning: boolean;
-};
-
-// --- Components ---
-
-const HelpTooltip: React.FC<{ text: string; label?: string }> = ({
-  text,
-  label,
-}) => (
-  <span className="group relative inline-block cursor-help ml-1">
-    <span className="border-b border-dotted border-slate-400">
-      {label || "(?)"}
-    </span>
-    <span className="invisible group-hover:visible absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-slate-800 text-white text-xs rounded p-2 z-10 shadow-lg text-center">
-      {text}
-      <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></span>
-    </span>
-  </span>
-);
-
-// --- Logic ---
-
-function computeScenarioHours(
-  key: ScenarioKey,
-  scenario: Scenario,
-  config: Config
-): { clinicalHours: number; crssHours: number } {
-  const { frontlineCrs, crssCount } = scenario;
-
-  if (key === "A" || key === "B") {
-    const clinical =
-      frontlineCrs * config.currentIndivPerCrsClinical +
-      config.currentGroupsClinical;
-    return { clinicalHours: clinical, crssHours: 0 };
-  }
-
-  // Scenario C: CRSS model
-  const clinical =
-    frontlineCrs * config.crssModelIndivPerCrsClinical +
-    config.crssModelGroupsBoth +
-    crssCount * config.crssModelClinicalPerCrss;
-
-  const crss =
-    frontlineCrs * config.crssModelIndivPerCrsCrss +
-    config.crssModelGroupsBoth +
-    config.crssModelGroupsCrssOnly;
-
-  return { clinicalHours: clinical, crssHours: crss };
-}
-
-function computeScenarioCosts(
-  key: ScenarioKey,
-  scenario: Scenario,
-  config: Config,
-  rates: Rates,
-  baseHoursPerMonth: number,
-  baseScenario: Scenario
-): ComputedScenario {
-  const hours = computeScenarioHours(key, scenario, config);
-
-  // 1. Clinical Supervision Impact (Informational Only)
-  const clinicalLaborCost = hours.clinicalHours * rates.clinicalHourly;
-  const lostRevenue = hours.clinicalHours * rates.clinicalBillable;
-
-  // 2. Payroll Calculation (Total Monthly Wage Bill)
-  // We calculate the FULL payroll for this scenario to compare against the Base.
-  // This handles Raises, New Hires, and Backfills automatically.
-
-  // Note: We assume the "User" is counted in these stats.
-  // In A: User is a CRS (part of frontlineCrs).
-  // In C: User is a CRSS (part of crssCount).
-
-  const totalPayroll =
-    (scenario.frontlineCrs * rates.crsHourly * baseHoursPerMonth) +
-    (scenario.crssCount * rates.crssHourly * baseHoursPerMonth);
-
-  const baseTotalPayroll =
-    (baseScenario.frontlineCrs * rates.crsHourly * baseHoursPerMonth) +
-    (baseScenario.crssCount * rates.crssHourly * baseHoursPerMonth);
-
-  const payrollImpact = totalPayroll - baseTotalPayroll;
-
-  // 3. Revenue Impact (Change in Billable Revenue)
-  // Revenue Impact = (Base Lost Revenue) - (Current Lost Revenue)
-  // If we lose LESS revenue than base, that's a GAIN (Positive).
-  // If we lose MORE revenue than base, that's a LOSS (Negative).
-
-  const baseScenarioKeyForHours = key === "C" ? "B" : "A"; // Determine the key for computeScenarioHours based on the comparison
-  const baseHours = computeScenarioHours(baseScenarioKeyForHours, baseScenario, config);
-
-  const baseLostRevenue = baseHours.clinicalHours * rates.clinicalBillable;
-  const revenueImpact = baseLostRevenue - lostRevenue;
-
-  const hoursDelta = baseHours.clinicalHours - hours.clinicalHours;
-
-  // 4. Net Benefit
-  // Benefit = Revenue Gained - Extra Payroll Paid
-  const netMonthlyBenefit = revenueImpact - payrollImpact;
-
-  // Capacity Check
-  const isCapacityWarning =
-    scenario.crssCount > 0 &&
-    scenario.frontlineCrs / scenario.crssCount > config.crssCapacity;
-
-  return {
-    clinicalHours: hours.clinicalHours,
-    crssHours: hours.crssHours,
-    clinicalLaborCost,
-    lostRevenue,
-    baseImpactForBenefit: 0, // Deprecated/Unused in new logic
-    hoursDelta,
-    payrollImpact,
-    totalSupervisionImpact: 0, // Deprecated
-    netMonthlyBenefit,
-    isCapacityWarning,
-  };
-}
+import { HelpModal } from "./components/HelpModal";
+import { SensitivityBar } from "./components/SensitivityBar";
 
 const App: React.FC = () => {
-  // Theme State
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(true);
+  // --- State ---
+  // Using persisted state with debounce
+  const [globalAssumptions, setGlobalAssumptions] = usePersistedState<GlobalAssumptions>(
+    "sep_global",
+    DEFAULT_GLOBAL_ASSUMPTIONS
+  );
+  const [demandAssumptions, setDemandAssumptions] = usePersistedState<DemandAssumptions>(
+    "sep_demand",
+    DEFAULT_DEMAND_ASSUMPTIONS
+  );
+  const [supervisionRules, setSupervisionRules] = usePersistedState<SupervisionRules>(
+    "sep_rules_gold_master_final", // Bump version to force reset for Gold Master Final
+    DEFAULT_SUPERVISION_RULES
+  );
 
-  // Apply theme class
+  // MIGRATION: Ensure tiered config exists (Legacy support, though v2 key should handle it)
+  // MIGRATION: Removed legacy tiered check as we bumped the key
+  const safeSupervisionRules = supervisionRules;
+  const [hrRiskAssumptions, setHrRiskAssumptions] = usePersistedState<HRRiskAssumptions>(
+    "sep_hr",
+    DEFAULT_HR_RISK_ASSUMPTIONS
+  );
+  const [scenarios, setScenarios] = usePersistedState<Record<string, Scenario>>(
+    "sep_scenarios",
+    DEFAULT_SCENARIOS
+  );
+
+  // Sensitivity Analysis State
+  const [enabledFactors, setEnabledFactors] = useState<EnabledFactors>({
+    includeRevenue: true,
+    includeRetention: true,
+    includeTransitionCost: true
+  });
+
+  // Dark Mode Persistence
+  const [isDarkMode, setIsDarkMode] = usePersistedState<boolean>('sep_isDarkMode', true);
+
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  // Collapsible Workspace State
+  const [isAssumptionsOpen, setIsAssumptionsOpen] = useState(true);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(true);
+
+  // --- Effects ---
+  // Apply Dark Mode class
   useEffect(() => {
     if (isDarkMode) {
-      document.body.classList.add("dark-mode");
+      document.documentElement.classList.add('dark');
     } else {
-      document.body.classList.remove("dark-mode");
+      document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
 
-  // Scenarios
-  const [scenarios, setScenarios] = useState<Record<ScenarioKey, Scenario>>({
-    A: { label: "Scenario A: Current", frontlineCrs: 3, crssCount: 0 },
-    B: {
-      label: "Scenario B: Hire CRS only",
-      frontlineCrs: 4,
-      crssCount: 0,
-    },
-    C: {
-      label: "Scenario C: Promote + Hire",
-      frontlineCrs: 3,
-      crssCount: 1,
-      isPromotion: true,
-    },
-  });
+  // --- Computations ---
+  const metrics = useMemo(() => {
+    const baselineScenario = scenarios.A;
 
-  // Config block
-  const [config, setConfig] = useState<Config>({
-    currentIndivPerCrsClinical: 3,
-    currentGroupsClinical: 1,
-    crssModelIndivPerCrsClinical: 1,
-    crssModelIndivPerCrsCrss: 1,
-    crssModelGroupsBoth: 0,
-    crssModelGroupsCrssOnly: 1,
-    crssModelClinicalPerCrss: 1,
-    crssCapacity: 5,
-  });
+    // Helper to calculate payroll for a given scenario
+    const calculatePayroll = (scenario: Scenario, globalAssumptions: GlobalAssumptions) => {
+      const crsSalary = globalAssumptions.crsBaseHourly;
+      const crssSalary = globalAssumptions.crssBaseHourly;
+      const supervisorSalary = globalAssumptions.supervisorBaseHourly;
 
-  // Rates
-  const [rates, setRates] = useState<Rates>({
-    clinicalHourly: 60, // Restored default
-    clinicalBillable: 150,
-    crssHourly: 35.5,
-    crsHourly: 24,
-  });
+      const totalSalary =
+        (scenario.frontlineCrsCount * crsSalary * globalAssumptions.fteHoursPerMonth) +
+        (scenario.crssCount * crssSalary * globalAssumptions.fteHoursPerMonth) +
+        (scenario.supervisorFte * supervisorSalary * globalAssumptions.fteHoursPerMonth);
 
-  // Your pay info
-  const [yourPay, setYourPay] = useState<YourPay>({
-    baseHoursPerMonth: 160,
-  });
-
-  const computed = useMemo(() => {
-    // First compute A to get the baseline
-    const compA = computeScenarioCosts(
-      "A",
-      scenarios.A,
-      config,
-      rates,
-      yourPay.baseHoursPerMonth,
-      scenarios.A // Base is itself
-    );
-
-    const result: Record<ScenarioKey, ComputedScenario> = {
-      A: compA,
-      B: computeScenarioCosts(
-        "B",
-        scenarios.B,
-        config,
-        rates,
-        yourPay.baseHoursPerMonth,
-        scenarios.A
-      ),
-      C: computeScenarioCosts(
-        "C",
-        scenarios.C,
-        config,
-        rates,
-        yourPay.baseHoursPerMonth,
-        scenarios.B // Compare C vs B
-      ),
+      const loadedPayroll = totalSalary * (1 + globalAssumptions.benefitLoad);
+      return { totalSalary, loaded: loadedPayroll };
     };
-    return result;
-  }, [scenarios, config, rates, yourPay.baseHoursPerMonth]);
 
-  // Helper to format money
-  const formatMoney = (val: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(val);
+    const baselinePayroll = calculatePayroll(baselineScenario, globalAssumptions);
 
-  const formatNumber = (val: number) =>
-    new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(val);
+    const computed: Record<string, ComputedMetrics> = {};
+    Object.values(scenarios).forEach((scenario) => {
+      computed[scenario.id] = computeScenarioMetrics(
+        scenario,
+        globalAssumptions,
+        safeSupervisionRules,
+        hrRiskAssumptions,
+        baselineScenario,
+        baselinePayroll.loaded,
+        enabledFactors
+      );
+    });
+    return computed;
+  }, [scenarios, globalAssumptions, safeSupervisionRules, hrRiskAssumptions, enabledFactors]);
 
-  const formatDelta = (val: number | null) => {
-    if (val === null) return "-";
-    const sign = val >= 0 ? "+" : "";
-    return `${sign}${formatMoney(val)}`;
-  };
-
-  const handleScenarioChange = (
-    key: ScenarioKey,
-    field: keyof Scenario,
-    val: number | boolean
-  ) => {
+  // --- Handlers ---
+  const handleScenarioChange = (id: string, newScenario: Scenario) => {
     setScenarios((prev) => ({
       ...prev,
-      [key]: { ...prev[key], [field]: val },
+      [id]: newScenario,
     }));
   };
 
-  const handleConfigChange = (field: keyof Config, value: number) => {
-    setConfig((prev) => ({ ...prev, [field]: value }));
+  const handleResetDefaults = () => {
+    if (confirm("Reset all assumptions to defaults?")) {
+      setGlobalAssumptions(DEFAULT_GLOBAL_ASSUMPTIONS);
+      setDemandAssumptions(DEFAULT_DEMAND_ASSUMPTIONS);
+      setSupervisionRules(DEFAULT_SUPERVISION_RULES);
+      setHrRiskAssumptions(DEFAULT_HR_RISK_ASSUMPTIONS);
+      setScenarios(DEFAULT_SCENARIOS);
+    }
   };
 
-  const handleRatesChange = (field: keyof Rates, value: number) => {
-    setRates((prev) => ({ ...prev, [field]: value }));
+  const handleSaveSettings = (newSettings: GlobalAssumptions) => {
+    setGlobalAssumptions(newSettings);
+    setIsSettingsOpen(false);
   };
 
-  const handleYourPayChange = (field: keyof YourPay, value: number) => {
-    setYourPay((prev) => ({ ...prev, [field]: value }));
+  const handleFactoryReset = () => {
+    if (confirm("Are you sure you want to reset ALL data to factory defaults? This cannot be undone.")) {
+      localStorage.clear();
+      window.location.reload();
+    }
   };
-
-
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 p-4 transition-colors duration-300">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <header className="bg-white rounded-xl shadow p-4 flex justify-between items-start">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200 flex flex-col">
+      {/* Header */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">
-              Supervision Efficiency Planner
-            </h1>
-            <p className="text-sm text-slate-600 mt-1">
-              Compare the <strong>Revenue Opportunity</strong> of freeing up clinical hours vs the <strong>Cost</strong> of hiring/promoting a CRSS.
-            </p>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Supervision Efficiency Planner</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Model the financial and operational impact of tiered supervision structures.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowInstructions(!showInstructions)}
-              className="text-sm px-3 py-1 rounded border hover:bg-slate-50"
+              onClick={() => window.print()}
+              className="p-2 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+              title="Print / Save as PDF"
             >
-              {showInstructions ? "Hide Guide" : "Show Guide"}
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setIsHelpOpen(true)}
+              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+              title="Help / User Guide"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+              title="Settings"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+            <button
+              onClick={handleResetDefaults}
+              className="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded border border-slate-600 transition-colors flex items-center gap-1"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+              Reset Defaults
             </button>
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
-              className="text-sm px-3 py-1 rounded border hover:bg-slate-50"
+              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
-              {isDarkMode ? "Light Mode" : "Dark Mode"}
+              {isDarkMode ? (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                </svg>
+              )}
             </button>
           </div>
-        </header>
-
-        {showInstructions && (
-          <section className="bg-white rounded-xl shadow p-4 text-sm space-y-2 border-l-4 border-indigo-500">
-            <h3 className="font-bold text-lg">How to use this planner</h3>
-            <ul className="list-disc list-inside space-y-1 text-slate-600">
-              <li>
-                <strong>Goal:</strong> Determine if the revenue gained from the Clinical Supervisor seeing clients (instead of supervising) offsets the cost of a CRSS.
-              </li>
-              <li>
-                <strong>Billable Rate:</strong> Enter the hourly revenue the Clinical Supervisor generates when seeing clients.
-              </li>
-              <li>
-                <strong>Staff Counts:</strong> Enter the <em>actual</em> number of staff you will have in each scenario.
-                <br />
-                <em>Example:</em> If you promote 1 CRS to CRSS and don't replace them, reduce the CRS count by 1. If you replace them, keep the CRS count the same.
-              </li>
-              <li>
-                <strong>Payroll Impact:</strong> The tool automatically calculates the cost difference (Raise vs New Hire) based on your staff counts.
-              </li>
-            </ul>
-          </section>
-        )}
-
-        {/* Scenario inputs */}
-        <section className="grid md:grid-cols-3 gap-4">
-          {(Object.keys(scenarios) as ScenarioKey[]).map((key) => {
-            const s = scenarios[key];
-            const comp = computed[key];
-            return (
-              <div
-                key={key}
-                className={`bg-white rounded-xl shadow p-4 space-y-3 relative ${comp.isCapacityWarning ? "ring-2 ring-rose-500" : ""
-                  }`}
-              >
-                <h2 className="font-semibold text-lg">{s.label}</h2>
-                <div className="space-y-2 text-sm">
-                  <label className="flex justify-between items-center">
-                    <span>Frontline CRS (Count)</span>
-                    <input
-                      type="number"
-                      className="w-20 border rounded px-2 py-1 text-right"
-                      value={s.frontlineCrs}
-                      min={0}
-                      onChange={(e) =>
-                        handleScenarioChange(
-                          key,
-                          "frontlineCrs",
-                          Number(e.target.value)
-                        )
-                      }
-                    />
-                  </label>
-                  <label className="flex justify-between items-center">
-                    <span>CRSS (Count)</span>
-                    <input
-                      type="number"
-                      className="w-20 border rounded px-2 py-1 text-right"
-                      value={s.crssCount}
-                      min={0}
-                      onChange={(e) =>
-                        handleScenarioChange(
-                          key,
-                          "crssCount",
-                          Number(e.target.value)
-                        )
-                      }
-                    />
-                  </label>
-                  {key === "C" && (
-                    <label className="flex justify-between items-center pt-2 border-t border-slate-200 mt-2">
-                      <span className="text-sm text-slate-600 flex items-center gap-1">
-                        Internal Promotion?
-                        <HelpTooltip text="Checked: You are promoting an existing CRS (Cost = Raise). Unchecked: You are hiring a new external CRSS (Cost = Full Premium)." />
-                      </span>
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 rounded bg-slate-100 border-slate-300 text-indigo-500 focus:ring-indigo-500"
-                        checked={s.isPromotion ?? true}
-                        onChange={(e) =>
-                          handleScenarioChange(key, "isPromotion", e.target.checked)
-                        }
-                      />
-                    </label>
-                  )}
-                </div>
-
-                {comp.isCapacityWarning && (
-                  <div className="bg-rose-50 text-rose-700 text-xs p-2 rounded border border-rose-200">
-                    <strong>Warning:</strong> Ratio exceeds capacity of{" "}
-                    {config.crssCapacity} CRS per CRSS.
-                  </div>
-                )}
-
-                <div className="border-t pt-2 mt-2 text-sm space-y-1">
-                  <div className="flex justify-between">
-                    <span className="flex items-center">
-                      Clinical hours needed
-                      <HelpTooltip text="Total hours of clinical supervision required based on staff count and ratios." />
-                    </span>
-                    <span className="font-semibold">
-                      {formatNumber(comp.clinicalHours)}
-                    </span>
-                  </div>
-                  {comp.crssHours > 0 && (
-                    <div className="flex justify-between text-slate-600">
-                      <span className="flex items-center">
-                        CRSS hours needed
-                        <HelpTooltip text="Total hours of CRSS supervision required based on staff count and ratios." />
-                      </span>
-                      <span className="font-semibold">
-                        {formatNumber(comp.crssHours)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Supervisor Time Impact Breakdown */}
-                  <div className="bg-slate-50 border border-slate-200 rounded p-2 my-2 text-sm space-y-2">
-                    <div className="font-medium text-slate-700 border-b border-slate-200 pb-1 mb-1">
-                      Supervisor Time Impact
-                    </div>
-
-                    {/* Direct Labor */}
-                    <div>
-                      <div className="flex justify-between text-slate-600 text-xs">
-                        <span>Direct Labor (Hourly)</span>
-                        <span>{formatMoney(comp.clinicalLaborCost)}</span>
-                      </div>
-                      <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-                        <span>{formatNumber(comp.clinicalHours)} hrs × {formatMoney(rates.clinicalHourly)}/hr</span>
-                        <span>= {formatMoney(comp.clinicalLaborCost)}</span>
-                      </div>
-                    </div>
-
-                    {/* Opportunity Cost */}
-                    <div>
-                      <div className="flex justify-between text-amber-700 text-xs font-medium">
-                        <span className="flex items-center gap-1">
-                          Lost Revenue (Billable)
-                          <HelpTooltip text="Opportunity Cost: Money lost because Supervisor is supervising instead of billing." />
-                        </span>
-                        <span>{formatMoney(comp.lostRevenue)}</span>
-                      </div>
-                      <div className="flex justify-between text-[10px] text-amber-600 font-mono">
-                        <span>{formatNumber(comp.clinicalHours)} hrs × {formatMoney(rates.clinicalBillable)}/hr</span>
-                        <span>= {formatMoney(comp.lostRevenue)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Payroll Impact */}
-                  {key !== "A" && (
-                    <div className="flex justify-between text-slate-500">
-                      <span className="flex items-center">
-                        Payroll Impact
-                        <HelpTooltip text="Additional cost of CRSS wages compared to standard CRS wages. (CRSS Count × Wage Difference)." />
-                      </span>
-                      <span>{formatDelta(comp.payrollImpact)}</span>
-                    </div>
-                  )}
-                  {key !== "A" && (
-                    <div className="text-[10px] text-slate-500 text-right -mt-1 font-mono">
-                      {key === "B" && `(+1 CRS FTE)`}
-                      {key === "C" && (s.isPromotion ? `(CRSS Raise)` : `(CRSS Premium)`)}
-                    </div>
-                  )}
-
-                  <div className="flex justify-between border-t pt-1 mt-1 text-base">
-                    <span className="flex items-center">
-                      Total Impact
-                      <HelpTooltip text="Labor Cost + Lost Revenue + Payroll Impact." />
-                    </span>
-                    <span className="font-bold">
-                      {formatMoney(comp.totalSupervisionImpact)}
-                    </span>
-                  </div>
-
-                  {key !== "A" && (
-                    <div className="bg-slate-50 p-2 rounded mt-2 space-y-2">
-                      <div className="flex justify-between text-xs font-medium uppercase text-slate-500 border-b border-slate-200 pb-1">
-                        Net Business Result {key === 'C' ? '(vs Scenario B)' : '(vs Scenario A)'}
-                      </div>
-
-                      {/* Breakdown */}
-                      <div className="space-y-1 text-xs text-slate-500 font-mono">
-                        <div className="flex justify-between">
-                          <span className="flex items-center">
-                            Revenue Impact
-                            <HelpTooltip text={`Change in Billable Revenue vs ${key === 'C' ? 'Scenario B' : 'Scenario A'}. Positive = Gained Revenue. Negative = Lost Revenue.`} />
-                          </span>
-                          <span className={(comp.baseImpactForBenefit - comp.lostRevenue) >= 0 ? "text-emerald-600" : "text-rose-600"}>
-                            {formatDelta(comp.baseImpactForBenefit - comp.lostRevenue)}
-                            <span className="text-slate-400 ml-1 text-[10px]">
-                              ({comp.hoursDelta > 0 ? "+" : ""}{formatNumber(comp.hoursDelta)} hrs)
-                            </span>
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Extra Payroll:</span>
-                          <span className="text-rose-600">- {formatMoney(comp.payrollImpact)}</span>
-                        </div>
-                        <div className="border-t border-slate-200 my-1"></div>
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <span className="flex items-center">
-                          Net Monthly Benefit
-                          <HelpTooltip text={`Revenue Recovered minus Extra Payroll Cost. (Compared to ${key === 'C' ? 'Scenario B' : 'Scenario A'}).`} />
-                        </span>
-                        <span
-                          className={`text-lg font-bold ${(comp.netMonthlyBenefit ?? 0) >= 0
-                            ? "text-emerald-700"
-                            : "text-rose-700"
-                            }`}
-                        >
-                          {formatDelta(comp.netMonthlyBenefit)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </section>
-
-        {/* Rates and config */}
-        <section className="grid md:grid-cols-3 gap-4">
-          {/* Clinical Supervisor Economics */}
-          <div className="bg-white rounded-xl shadow p-4 space-y-3 border-t-4 border-indigo-500">
-            <h2 className="font-semibold text-lg text-indigo-900">
-              Clinical Supervisor
-            </h2>
-            <p className="text-xs text-slate-500">
-              Compare their cost to the revenue they <em>could</em> generate.
-            </p>
-            <div className="space-y-3 text-sm">
-              <label className="flex justify-between items-center">
-                <span className="flex flex-col">
-                  <span>Hourly Pay Rate</span>
-                  <span className="text-xs text-slate-400">Cost to Org</span>
-                </span>
-                <input
-                  type="number"
-                  className="w-20 border rounded px-2 py-1 text-right"
-                  value={rates.clinicalHourly}
-                  min={0}
-                  step={0.5}
-                  onChange={(e) =>
-                    handleRatesChange("clinicalHourly", Number(e.target.value))
-                  }
-                />
-              </label>
-              <div className="border-t border-dashed my-2"></div>
-              <label className="flex justify-between items-center bg-emerald-50 p-2 rounded -mx-2">
-                <span className="flex flex-col">
-                  <span className="font-medium text-emerald-900">
-                    Billable Rate
-                  </span>
-                  <span className="text-xs text-emerald-700">
-                    Revenue Potential
-                  </span>
-                </span>
-                <input
-                  type="number"
-                  className="w-20 border rounded px-2 py-1 text-right border-emerald-200"
-                  value={rates.clinicalBillable}
-                  min={0}
-                  step={0.5}
-                  onChange={(e) =>
-                    handleRatesChange(
-                      "clinicalBillable",
-                      Number(e.target.value)
-                    )
-                  }
-                />
-              </label>
-            </div>
-          </div>
-
-          {/* Staff Compensation */}
-          <div className="bg-white rounded-xl shadow p-4 space-y-3 border-t-4 border-slate-500">
-            <h2 className="font-semibold text-lg text-slate-900">
-              Staff Wages (FTE)
-            </h2>
-            <p className="text-xs text-slate-500">
-              Define salaries for CRS and CRSS roles.
-            </p>
-            <div className="space-y-3 text-sm">
-              <label className="flex justify-between items-center">
-                <span>CRSS Hourly Wage</span>
-                <input
-                  type="number"
-                  className="w-20 border rounded px-2 py-1 text-right"
-                  value={rates.crssHourly}
-                  min={0}
-                  step={0.5}
-                  onChange={(e) =>
-                    handleRatesChange("crssHourly", Number(e.target.value))
-                  }
-                />
-              </label>
-              <label className="flex justify-between items-center">
-                <span>CRS Hourly Wage</span>
-                <input
-                  type="number"
-                  className="w-20 border rounded px-2 py-1 text-right"
-                  value={rates.crsHourly}
-                  min={0}
-                  step={0.5}
-                  onChange={(e) =>
-                    handleRatesChange("crsHourly", Number(e.target.value))
-                  }
-                />
-              </label>
-              <label className="flex justify-between items-center border-t pt-2">
-                <span className="flex flex-col">
-                  <span>Full-Time Basis</span>
-                  <span className="text-xs text-slate-400">Hours/Month</span>
-                </span>
-                <input
-                  type="number"
-                  className="w-20 border rounded px-2 py-1 text-right"
-                  value={yourPay.baseHoursPerMonth}
-                  min={0}
-                  onChange={(e) =>
-                    handleYourPayChange(
-                      "baseHoursPerMonth",
-                      Number(e.target.value)
-                    )
-                  }
-                />
-              </label>
-            </div>
-          </div>
-
-          {/* Capacity Settings */}
-          <div className="bg-white rounded-xl shadow p-4 space-y-3 border-t-4 border-rose-400">
-            <h2 className="font-semibold text-lg text-rose-900">
-              Safety / Capacity
-            </h2>
-            <div className="space-y-2 text-sm">
-              <label className="flex justify-between items-center">
-                <span>Max CRS per CRSS</span>
-                <input
-                  type="number"
-                  className="w-20 border rounded px-2 py-1 text-right"
-                  value={config.crssCapacity}
-                  min={1}
-                  onChange={(e) =>
-                    handleConfigChange("crssCapacity", Number(e.target.value))
-                  }
-                />
-              </label>
-              <p className="text-xs text-slate-500 pt-2">
-                Triggers a warning if the supervision ratio is unsafe.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Config section */}
-        <div className="grid md:grid-cols-2 gap-4 items-start">
-          {/* Standard Model Config */}
-          <section className="bg-white rounded-xl shadow p-4 space-y-3">
-            <div className="border-b pb-2">
-              <h2 className="font-semibold text-lg">Standard Model Config</h2>
-              <p className="text-xs text-slate-500">
-                Applies to Scenario A & B (Clinical Only)
-              </p>
-            </div>
-
-            <div className="space-y-3 text-sm">
-              <label className="flex justify-between items-center">
-                <span>Individual Clinical Supervision (hrs/mo)</span>
-                <input
-                  type="number"
-                  className="w-20 border rounded px-2 py-1 text-right"
-                  value={config.currentIndivPerCrsClinical}
-                  min={0}
-                  step={0.5}
-                  onChange={(e) =>
-                    handleConfigChange(
-                      "currentIndivPerCrsClinical",
-                      Number(e.target.value)
-                    )
-                  }
-                />
-              </label>
-              <label className="flex justify-between items-center">
-                <span>Group Clinical Supervision (hrs/mo)</span>
-                <input
-                  type="number"
-                  className="w-20 border rounded px-2 py-1 text-right"
-                  value={config.currentGroupsClinical}
-                  min={0}
-                  step={0.5}
-                  onChange={(e) =>
-                    handleConfigChange(
-                      "currentGroupsClinical",
-                      Number(e.target.value)
-                    )
-                  }
-                />
-              </label>
-            </div>
-          </section>
-
-          {/* Tiered Model Config */}
-          <section className="bg-white rounded-xl shadow p-4 space-y-3">
-            <div className="border-b pb-2">
-              <h2 className="font-semibold text-lg">Tiered Model Config</h2>
-              <p className="text-xs text-slate-500">
-                Applies to Scenario C (Clinical + CRSS)
-              </p>
-            </div>
-
-            <div className="space-y-4 text-sm">
-              {/* Frontline Supervision */}
-              <div className="space-y-2">
-                <h3 className="font-semibold text-slate-700 border-b border-slate-100 pb-1">
-                  Frontline CRS Supervision
-                </h3>
-                <label className="flex justify-between items-center">
-                  <span>Individual w/ Clinical (hrs/mo)</span>
-                  <input
-                    type="number"
-                    className="w-20 border rounded px-2 py-1 text-right"
-                    value={config.crssModelIndivPerCrsClinical}
-                    min={0}
-                    step={0.5}
-                    onChange={(e) =>
-                      handleConfigChange(
-                        "crssModelIndivPerCrsClinical",
-                        Number(e.target.value)
-                      )
-                    }
-                  />
-                </label>
-                <label className="flex justify-between items-center">
-                  <span>Individual w/ CRSS (hrs/mo)</span>
-                  <input
-                    type="number"
-                    className="w-20 border rounded px-2 py-1 text-right"
-                    value={config.crssModelIndivPerCrsCrss}
-                    min={0}
-                    step={0.5}
-                    onChange={(e) =>
-                      handleConfigChange(
-                        "crssModelIndivPerCrsCrss",
-                        Number(e.target.value)
-                      )
-                    }
-                  />
-                </label>
-                <label className="flex justify-between items-center">
-                  <span>Group: Both Attend (hrs/mo)</span>
-                  <input
-                    type="number"
-                    className="w-20 border rounded px-2 py-1 text-right"
-                    value={config.crssModelGroupsBoth}
-                    min={0}
-                    step={0.5}
-                    onChange={(e) =>
-                      handleConfigChange(
-                        "crssModelGroupsBoth",
-                        Number(e.target.value)
-                      )
-                    }
-                  />
-                </label>
-                <label className="flex justify-between items-center">
-                  <span>Group: CRSS Only (hrs/mo)</span>
-                  <input
-                    type="number"
-                    className="w-20 border rounded px-2 py-1 text-right"
-                    value={config.crssModelGroupsCrssOnly}
-                    min={0}
-                    step={0.5}
-                    onChange={(e) =>
-                      handleConfigChange(
-                        "crssModelGroupsCrssOnly",
-                        Number(e.target.value)
-                      )
-                    }
-                  />
-                </label>
-              </div>
-
-              {/* CRSS Development */}
-              <div className="space-y-2">
-                <h3 className="font-semibold text-slate-700 border-b border-slate-100 pb-1">
-                  CRSS Development
-                </h3>
-                <label className="flex justify-between items-center">
-                  <span>Clinical Supervision for CRSS (hrs/mo)</span>
-                  <input
-                    type="number"
-                    className="w-20 border rounded px-2 py-1 text-right"
-                    value={config.crssModelClinicalPerCrss}
-                    min={0}
-                    step={0.5}
-                    onChange={(e) =>
-                      handleConfigChange(
-                        "crssModelClinicalPerCrss",
-                        Number(e.target.value)
-                      )
-                    }
-                  />
-                </label>
-              </div>
-            </div>
-          </section>
         </div>
-      </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 max-w-7xl mx-auto w-full p-4 space-y-8">
+
+        {/* 1. Executive Summary */}
+        <section>
+          <ExecutiveSummary
+            metricsA={metrics.A}
+            metricsB={metrics.B}
+            metricsC={metrics.C}
+            isOpen={isSummaryOpen}
+            onToggle={() => setIsSummaryOpen(!isSummaryOpen)}
+          />
+        </section>
+
+        {/* 2. Sensitivity Analysis Bar */}
+        <section>
+          <SensitivityBar
+            enabledFactors={enabledFactors}
+            setEnabledFactors={setEnabledFactors}
+          />
+        </section>
+
+        {/* 3. Assumptions Deck */}
+        <section>
+          <AssumptionsDeck
+            globalAssumptions={globalAssumptions}
+            setGlobalAssumptions={setGlobalAssumptions}
+            demandAssumptions={demandAssumptions}
+            setDemandAssumptions={setDemandAssumptions}
+            supervisionRules={safeSupervisionRules}
+            setSupervisionRules={setSupervisionRules}
+            hrRiskAssumptions={hrRiskAssumptions}
+            setHrRiskAssumptions={setHrRiskAssumptions}
+            enabledFactors={enabledFactors}
+            setEnabledFactors={setEnabledFactors}
+            isOpen={isAssumptionsOpen}
+            onToggle={() => setIsAssumptionsOpen(!isAssumptionsOpen)}
+          />
+        </section>
+
+        {/* 4. Scenario Modeling */}
+        <ScenarioGrid
+          scenarios={scenarios}
+          metrics={metrics}
+          globalAssumptions={globalAssumptions}
+          rules={safeSupervisionRules}
+          onScenarioChange={handleScenarioChange}
+        />
+      </main>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currentAssumptions={globalAssumptions}
+        onSave={handleSaveSettings}
+        onFactoryReset={handleFactoryReset}
+      />
+
+      {/* Help Modal */}
+      <HelpModal
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
+      />
     </div>
   );
 };
