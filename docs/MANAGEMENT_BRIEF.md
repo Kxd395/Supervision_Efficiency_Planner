@@ -40,6 +40,35 @@ The Break-Even analysis incorporates one-time transition costs.
 
 ---
 
+## UI/UX Design Philosophy
+
+The application's interface is designed with decision-makers in mind, balancing accessibility with precision. Key design principles include:
+
+### Contextual Help System
+Every critical input field includes an inline help tooltip (marked with a **?** icon) that provides:
+- **Description**: A clear explanation of what the input represents and how it's measured
+- **Impact**: A direct statement of how this variable affects the financial model
+
+This ensures that stakeholders can explore assumptions independently without requiring deep domain expertise or extensive documentation.
+
+**Examples of Contextual Help**:
+- **Fringe Benefits (%)**: Explains employer costs (FICA, Health, Liability, 403b) and shows how it multiplies base wages
+- **Utilization (%)**: Clarifies that conservative estimates (60-75%) account for admin time and scheduling gaps
+- **Billable Rate ($)**: Describes how this drives the "Realized Revenue" calculation
+- **CRSS Wage**: Shows how it determines the "Payroll Increase" in Scenarios B & C
+
+### Visual Organization
+The inputs are organized into a **2-column grid** that separates:
+- **Left Column**: "Financials & Demand" (raw cost and volume data)
+- **Right Column**: "Rules & Risk" (strategic policy and risk factors)
+
+This logical flow guides users from foundational data entry to strategic scenario modeling.
+
+### Accessibility & Transparency
+The "Delegation Split" layout in the Supervision Rules panel visually mirrors the operational reality—clearly showing which hours are **retained by the Director** versus **delegated to the CRSS**. This color-coded, intuitive design reduces cognitive load and makes the supervision model immediately understandable.
+
+---
+
 ## Scenario Comparison Matrix
 
 | Metric | Scenario A (Baseline) | Scenario B (Promotion) | Scenario C (Expansion) |

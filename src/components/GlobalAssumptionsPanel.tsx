@@ -51,6 +51,10 @@ export const GlobalAssumptionsPanel: React.FC<Props> = ({ assumptions, onChange 
                         onChange={(val) => onChange({ ...assumptions, supervisorBaseHourly: val })}
                         step={0.5}
                         prefix="$"
+                        helpContent={{
+                            description: "Hourly base rate for Clinical Supervisors who oversee the program.",
+                            impact: "Determines the 'Labor Efficiency' when freed hours are reinvested."
+                        }}
                     />
                 </div>
             </div>
@@ -80,6 +84,10 @@ export const GlobalAssumptionsPanel: React.FC<Props> = ({ assumptions, onChange 
                             value={assumptions.fteHoursPerMonth}
                             onChange={(v) => handleChange('fteHoursPerMonth', v)}
                             suffix="hrs"
+                            helpContent={{
+                                description: "Standard monthly hours for a full-time employee (typically 160 hrs).",
+                                impact: "Used to convert hourly wages into monthly payroll costs."
+                            }}
                         />
                     </div>
                 </div>
@@ -95,6 +103,10 @@ export const GlobalAssumptionsPanel: React.FC<Props> = ({ assumptions, onChange 
                             value={assumptions.supervisorBillableRate}
                             onChange={(v) => handleChange('supervisorBillableRate', v)}
                             prefix="$"
+                            helpContent={{
+                                description: "Hourly billing rate for supervisor's clinical time (e.g., therapy sessions).",
+                                impact: "Drives the 'Realized Revenue' calculation when freed hours are billable."
+                            }}
                         />
                         <SteppedNumberInput
                             label="Utilization (%)"
@@ -102,6 +114,10 @@ export const GlobalAssumptionsPanel: React.FC<Props> = ({ assumptions, onChange 
                             onChange={(v) => handleChange('utilizationPercent', v / 100)}
                             suffix="%"
                             step={5}
+                            helpContent={{
+                                description: "Target percentage of freed time that can be converted to billable activities.",
+                                impact: "Conservative estimates (60-75%) account for admin time and scheduling gaps."
+                            }}
                         />
                     </div>
                 </div>
