@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Scenario, ComputedMetrics } from '../types';
-import { Card, Badge, SteppedNumberInput } from './Shared';
+import { Card, Badge, SteppedNumberInput, HelpTooltip } from './Shared';
 
 interface Props {
     scenario: Scenario;
@@ -48,7 +48,15 @@ export const ScenarioCard: React.FC<Props> = ({
 
             {/* 2. STAFFING CONFIGURATION (Inputs) */}
             <div className="space-y-4 p-4 bg-slate-950/50 rounded-lg border border-slate-800 no-print">
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Staffing Configuration</h4>
+                <div className="flex items-center">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Staffing Configuration</h4>
+                    <HelpTooltip
+                        content={{
+                            description: "Adjust the number of Frontline CRS and Supervisor CRSS staff. Changes affect payroll costs and supervision ratios.",
+                            impact: "Directly drives Payroll Delta and Compliance Status."
+                        }}
+                    />
+                </div>
 
                 <SteppedNumberInput
                     label="Frontline CRS Count"
@@ -99,7 +107,15 @@ export const ScenarioCard: React.FC<Props> = ({
             {/* 3. PAYROLL IMPACT */}
             <div className="flex justify-between items-end border-b border-slate-800 pb-4">
                 <div className="text-xs text-slate-400">
-                    Salary & Payroll Impact<br />
+                    <div className="flex items-center">
+                        Salary & Payroll Impact
+                        <HelpTooltip
+                            content={{
+                                description: "The difference in total loaded payroll (wages + benefits) compared to the Baseline scenario.",
+                                impact: "Positive values mean higher costs; negative values mean savings."
+                            }}
+                        />
+                    </div>
                     <span className="text-[10px] opacity-70">Base Payroll: ${fmt(metrics.payrollBase)}</span>
                 </div>
                 <div className={`text-sm font-bold ${metrics.payrollDeltaLoaded > 0 ? 'text-rose-400' : 'text-slate-200'}`}>
@@ -118,9 +134,17 @@ export const ScenarioCard: React.FC<Props> = ({
                         </svg>
                     </div>
                     <div className="text-xs">
-                        <span className="block font-bold text-indigo-100">
-                            {metrics.freedSupervisorHours % 1 === 0 ? metrics.freedSupervisorHours.toLocaleString() : metrics.freedSupervisorHours.toFixed(1)} Hours / Month
-                        </span>
+                        <div className="flex items-center">
+                            <span className="block font-bold text-indigo-100">
+                                {metrics.freedSupervisorHours % 1 === 0 ? metrics.freedSupervisorHours.toLocaleString() : metrics.freedSupervisorHours.toFixed(1)} Hours / Month
+                            </span>
+                            <HelpTooltip
+                                content={{
+                                    description: "Supervisor hours freed up by delegating tasks to CRSS staff. These hours are repurposed for billable clinical work.",
+                                    impact: "Generates 'Hard Revenue' if billable, or 'Soft Efficiency' if not."
+                                }}
+                            />
+                        </div>
                         <span className="text-[10px] text-slate-400">
                             Modeled monthly hours restored for {scenario.reinvestmentTask || "clinical care"}
                         </span>
@@ -130,7 +154,15 @@ export const ScenarioCard: React.FC<Props> = ({
 
             {/* 4. VALUE GENERATED (Grant Shield + Revenue Split) */}
             <div className="space-y-4 flex-grow">
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Value Generated</h4>
+                <div className="flex items-center mt-4">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Value Generated</h4>
+                    <HelpTooltip
+                        content={{
+                            description: "Financial value created through new revenue (Supervisor + Peer), Grant Savings (offsetting costs), and Efficiency/Retention savings.",
+                            impact: "Offsets the Payroll Impact to determine Net Monthly Impact."
+                        }}
+                    />
+                </div>
 
                 {/* A. GRANT SHIELD (Only if Grant Savings exist) */}
                 {metrics.grantSavings > 0 && (
@@ -215,7 +247,15 @@ export const ScenarioCard: React.FC<Props> = ({
             {/* 5. FOOTER: NET IMPACT */}
             <div className="pt-4 border-t border-slate-700">
                 <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-bold text-white uppercase">Net Monthly Impact (Hard)</span>
+                    <div className="flex items-center">
+                        <span className="text-xs font-bold text-white uppercase">Net Monthly Impact (Hard)</span>
+                        <HelpTooltip
+                            content={{
+                                description: "The actual effect on the bank account. Calculated as: (Realized Revenue + Grant Savings) - Payroll Delta.",
+                                impact: "The primary financial KPI for decision making."
+                            }}
+                        />
+                    </div>
                     <span className={`text-lg font-bold ${metrics.netMonthlySteadyStateHard >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                         {metrics.netMonthlySteadyStateHard >= 0 ? '+' : ''}${fmt(metrics.netMonthlySteadyStateHard)}
                     </span>
