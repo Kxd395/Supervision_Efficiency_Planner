@@ -5,12 +5,10 @@ import { ScenarioCard } from './ScenarioCard';
 interface Props {
     scenarios: Record<string, Scenario>;
     metrics: Record<string, ComputedMetrics>;
-    globalAssumptions: GlobalAssumptions;
-    rules: SupervisionRules; // Added rules prop
     onScenarioChange: (id: string, newScenario: Scenario) => void;
 }
 
-export const ScenarioGrid: React.FC<Props> = ({ scenarios, metrics, globalAssumptions, rules, onScenarioChange }) => {
+export const ScenarioGrid: React.FC<Props> = ({ scenarios, metrics, onScenarioChange }) => {
     return (
         <section>
             <div className="flex items-center gap-2 mb-4 border-b border-slate-200 dark:border-slate-800 pb-2">

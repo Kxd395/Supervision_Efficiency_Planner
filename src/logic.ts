@@ -1,6 +1,5 @@
 import type {
     GlobalAssumptions,
-    DemandAssumptions,
     SupervisionRules,
     HRRiskAssumptions,
     Scenario,

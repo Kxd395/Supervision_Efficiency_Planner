@@ -277,8 +277,6 @@ const App: React.FC = () => {
         <ScenarioGrid
           scenarios={scenarios}
           metrics={metrics}
-          globalAssumptions={globalAssumptions}
-          rules={safeSupervisionRules}
           onScenarioChange={handleScenarioChange}
         />
       </main>
