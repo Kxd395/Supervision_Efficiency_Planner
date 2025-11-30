@@ -110,7 +110,7 @@ $$ \text{Efficiency Savings} = \text{Freed Hours} \times \text{Arbitrage/Hr} $$
 **Logic Rule (The "Double Dip" Prevention):**
 *   If we calculate **Revenue**, we usually set **Hard Labor Savings** to 0. Why? Because you can't *both* save the Supervisor's salary (by firing them/cutting hours) *AND* use their time to generate revenue. You have to pick one.
 *   In this model:
-    *   **Hard Cash Flow** = Revenue - (Payroll Increase - Grant Savings).
+    *   **Hard Cash Flow** = Revenue - (Payroll Increase - Grant Savings) + (Hard Efficiency if Revenue is 0).
     *   **Soft Value** = Efficiency Savings (we treat arbitrage as "Soft" value when Revenue is active, representing the *quality* of the spend).
 
 ### D. Retention Savings (Soft)
@@ -125,7 +125,7 @@ $$ \text{Savings} = \text{Total Staff} \times \text{Reduction Rate (10\%)} \time
 ### Net Monthly Steady State (Hard)
 This is the "CFO Number"—the actual cash impact on the P&L.
 
-$$ \text{Net Hard} = (\text{Sup Revenue} + \text{Peer Revenue} + \text{Grant Savings}) - \text{Payroll Delta} $$
+$$ \text{Net Hard} = (\text{Sup Revenue} + \text{Peer Revenue} + \text{Grant Savings}) - \text{Payroll Delta} + \text{Hard Efficiency} $$
 
 *   If positive: The change pays for itself immediately.
 *   If negative: The efficiency gains are not enough to cover the new hire costs (yet).

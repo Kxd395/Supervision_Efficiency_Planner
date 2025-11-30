@@ -108,7 +108,7 @@ The **Supervision Rules** panel uses a visual "Delegation Split" design to show 
 ### Scenario Tabs
 
 Use the **Scenario B** and **Scenario C** tabs to configure different supervision models:
-- **Scenario B (Promotion)**: Promote an existing CRS to CRSS role
+- **Scenario B (Restructure)**: Promote an existing CRS to CRSS role
 - **Scenario C (Expansion)**: Hire a new CRSS from outside
 
 Each scenario can have independent supervision rules, allowing you to model different operational strategies.
@@ -144,7 +144,7 @@ This panel captures the "hidden costs" of organizational change.
 The top dashboard shows the key financial metrics for each scenario:
 
 **Net Monthly Impact Analysis**
-- **Hard Cash**: Actual revenue or cost savings (conservative)
+- **Hard Cash**: Actual revenue + grant savings - payroll (plus efficiency if revenue is zero)
 - **Soft Value**: Calculated savings not yet realized as cash
 - **Compliance Status**: Whether the supervision ratios meet regulatory requirements
 - **Revenue Split**: Visualizes the composition of revenue (Supervisor Repurposing vs. Peer Billing)
@@ -164,7 +164,7 @@ Compare three scenarios side-by-side:
 1. **Scenario A (Baseline)**: Current state with Director providing all supervision
    - High cost, high risk, no ROI opportunity
 
-2. **Scenario B (Promotion)**: Promote a CRS to CRSS
+2. **Scenario B (Restructure)**: Promote a CRS to CRSS
    - Headcount neutral
    - Lower cost than expansion
    - May require backfilling the promoted staff's caseload

@@ -181,11 +181,12 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
                                     cursor={{ fill: 'transparent' }}
                                     content={({ active, payload }) => {
                                         if (active && payload && payload.length) {
-                                            const val = payload[0].value as number;
+                                            const data = payload[0].payload;
                                             return (
-                                                <div className="bg-slate-800 text-white text-xs p-2 rounded shadow-lg border border-slate-700">
-                                                    <p className="font-bold mb-1">{payload[0].payload.name}</p>
-                                                    <p className="font-mono">{formatDelta(val)}</p>
+                                                <div className="bg-slate-800 text-white text-xs p-2 rounded shadow-lg">
+                                                    <div className="font-bold mb-1">{data.label}</div>
+                                                    <div className="text-slate-300 mb-1">Monthly Net Cash (Hard)</div>
+                                                    <div className="font-mono">{formatDelta(data.value)}</div>
                                                 </div>
                                             );
                                         }
@@ -273,7 +274,7 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
                                 <tr className="bg-slate-50 dark:bg-slate-900/50 border-b dark:border-slate-700">
                                     <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">
                                         Monthly Net Cash (Hard)
-                                        <span className="block text-[10px] text-slate-400 font-normal">Revenue - Payroll + Grant</span>
+                                        <span className="block text-[10px] text-slate-400 font-normal">Hard Net Impact: Revenue - Payroll + Grant (+ Efficiency if Rev=0)</span>
                                     </td>
                                     <td className="px-4 py-3 font-mono text-slate-400 dark:text-slate-500">-</td>
                                     <td className={`px-4 py-3 font-mono ${metricsB.netMonthlySteadyStateHard >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
@@ -291,11 +292,11 @@ export const ExecutiveSummary: React.FC<Props> = ({ metricsA, metricsB, metricsC
                                         <span className="block text-[10px] text-slate-400 font-normal">Retention + Efficiency</span>
                                     </td>
                                     <td className="px-4 py-3 font-mono text-slate-400 dark:text-slate-500">-</td>
-                                    <td className="px-4 py-3 font-mono text-emerald-600 dark:text-emerald-400">
-                                        +{formatMoney(metricsB.netMonthlySteadyStateSoft)}
+                                    <td className={`px-4 py-3 font-mono ${metricsB.netMonthlySteadyStateSoft >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                        {formatDelta(metricsB.netMonthlySteadyStateSoft)}
                                     </td>
-                                    <td className="px-4 py-3 font-mono text-emerald-600 dark:text-emerald-400">
-                                        +{formatMoney(metricsC.netMonthlySteadyStateSoft)}
+                                    <td className={`px-4 py-3 font-mono ${metricsC.netMonthlySteadyStateSoft >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                        {formatDelta(metricsC.netMonthlySteadyStateSoft)}
                                     </td>
                                 </tr>
 

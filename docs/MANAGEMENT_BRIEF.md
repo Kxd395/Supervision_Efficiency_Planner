@@ -76,7 +76,7 @@ The "Delegation Split" layout in the Supervision Rules panel visually mirrors th
 
 ## Scenario Comparison Matrix
 
-| Metric | Scenario A (Baseline) | Scenario B (Promotion) | Scenario C (Expansion) |
+| Metric | Scenario A (Baseline) | Scenario B (Restructure) | Scenario C (Expansion) |
 | :--- | :--- | :--- | :--- |
 | **Primary Cost** | High (Director Time) | Low (Wage Differential) | Medium (New Salary + Benefits) |
 | **Headcount** | Static | Static (Headcount Neutral) | +1 FTE |

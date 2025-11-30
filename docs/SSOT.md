@@ -15,7 +15,7 @@ The model calculates the monthly payroll impact based on the staffing configurat
 
 *   **Scenario A (Baseline):** Represents the current state.
     *   `Payroll = (Frontline_CRS * Wage_CRS) + (Supervisor_FTE * Wage_Supervisor)`
-*   **Scenario B (Promotion):** Modeled as a **Promotion** (Headcount Neutral).
+*   **Scenario B (Restructure):** Modeled as a **Promotion** (Headcount Neutral).
     *   Staff are promoted from CRS to CRSS.
     *   **Cost:** The *Differential* between CRS and CRSS wage (e.g., +$4.50/hr), not a full new salary.
 *   **Scenario C (Expansion):** Modeled as **Expansion** (Growth).
@@ -54,7 +54,7 @@ The final "Bottom Line" metrics used for decision making.
 
 *   **Hard Net Impact (Primary KPI):**
     *   The actual effect on the bank account.
-    *   `Net_Hard = Realized_Revenue - Payroll_Delta_Loaded + (Hard_Efficiency)`
+    *   `Net_Hard = (Realized_Revenue + Grant_Savings) - Payroll_Delta_Loaded + (Hard_Efficiency)`
 *   **Soft Value (Secondary KPI):**
     *   The estimated operational value.
     *   `Soft_Value = Retention_Savings + (Soft_Efficiency)`
