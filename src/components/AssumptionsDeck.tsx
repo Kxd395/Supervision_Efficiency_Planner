@@ -58,9 +58,7 @@ export const AssumptionsDeck: React.FC<Props> = ({
     const renderDemand = () => (
         <DemandUtilizationPanel
             assumptions={demandAssumptions}
-            globalAssumptions={globalAssumptions}
             onChange={setDemandAssumptions}
-            onChangeGlobal={setGlobalAssumptions}
         />
     );
 
