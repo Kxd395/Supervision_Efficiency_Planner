@@ -47,7 +47,7 @@ export const ScenarioCard: React.FC<Props> = ({
             </div>
 
             {/* 2. STAFFING CONFIGURATION (Inputs) */}
-            <div className="space-y-4 p-4 bg-slate-950/50 rounded-lg border border-slate-800">
+            <div className="space-y-4 p-4 bg-slate-950/50 rounded-lg border border-slate-800 no-print">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Staffing Configuration</h4>
 
                 <SteppedNumberInput
@@ -74,6 +74,24 @@ export const ScenarioCard: React.FC<Props> = ({
                             onChange={() => handleToggle('isInternalPromotion')}
                             className="rounded border-slate-700 bg-slate-900 text-indigo-500 focus:ring-indigo-500"
                         />
+                    </div>
+                )}
+            </div>
+
+            {/* 2b. STAFFING SUMMARY (Print Only) */}
+            <div className="hidden print:block space-y-2 p-4 border border-slate-200 rounded-lg">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Staffing Configuration</h4>
+                <div className="flex justify-between text-sm">
+                    <span>Frontline CRS:</span>
+                    <span className="font-bold">{scenario.frontlineCrsCount} FTEs</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                    <span>CRSS (Peer Sup):</span>
+                    <span className="font-bold">{scenario.crssCount} FTEs</span>
+                </div>
+                {!isBaseline && scenario.isInternalPromotion && (
+                    <div className="text-xs text-slate-500 italic mt-1">
+                        * Internal Promotion Model
                     </div>
                 )}
             </div>

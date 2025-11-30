@@ -180,7 +180,7 @@ export const TextInput: React.FC<{
 };
 
 export const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
-    <div className={`bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 transition-colors duration-300 ${className}`}>
+    <div className={`bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 transition-colors duration-300 break-inside-avoid ${className}`}>
         {children}
     </div>
 );

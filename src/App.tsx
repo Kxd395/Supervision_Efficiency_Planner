@@ -152,7 +152,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200 flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+      <header className="no-print sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 p-4 shadow-sm">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Supervision Efficiency Planner</h1>
@@ -218,8 +218,22 @@ const App: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 space-y-8">
 
+        {/* Print Header */}
+        <div className="hidden print:block mb-8 border-b-2 border-slate-900 pb-4">
+          <div className="flex justify-between items-end">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Executive Summary</h1>
+              <p className="text-sm text-slate-600 mt-1">Supervision Efficiency Planner</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-slate-500">Generated on</p>
+              <p className="text-sm font-medium text-slate-900">{new Date().toLocaleDateString()}</p>
+            </div>
+          </div>
+        </div>
+
         {/* 1. Executive Summary */}
-        <section>
+        <section className="no-print">
           <ExecutiveSummary
             metricsA={metrics.A}
             metricsB={metrics.B}
@@ -230,7 +244,7 @@ const App: React.FC = () => {
         </section>
 
         {/* 2. Sensitivity Analysis Bar */}
-        <section>
+        <section className="no-print">
           <SensitivityBar
             enabledFactors={enabledFactors}
             setEnabledFactors={setEnabledFactors}
@@ -238,7 +252,7 @@ const App: React.FC = () => {
         </section>
 
         {/* 3. Assumptions Deck */}
-        <section>
+        <section className="no-print">
           <AssumptionsDeck
             globalAssumptions={globalAssumptions}
             setGlobalAssumptions={setGlobalAssumptions}

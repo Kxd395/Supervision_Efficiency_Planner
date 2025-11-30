@@ -24,53 +24,56 @@ input[type=number] {
 
 /* Print Styles */
 @media print {
-  body {
-    background: white !important;
-    color: black !important;
+  @page {
+    margin: 0.5in;
+    size: landscape;
   }
 
-  /* Hide UI elements */
-  header button,
-  .lg\:sticky,
-  /* Sidebar */
-  button,
-  /* All buttons including steppers */
-  .group-hover\:block
+  body {
+    background: white !important;
+    color: #1e293b !important; /* slate-800 */
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 
-  /* Tooltips */
-    {
+  /* Hide UI elements not needed for report */
+  header button, /* Theme toggle, etc */
+  .no-print,
+  button, /* Hide all interactive buttons */
+  input[type="checkbox"], /* Hide toggles */
+  .group-hover\:block /* Hide tooltips */
+  {
     display: none !important;
   }
 
-  /* Expand Layout */
-  .lg\:col-span-9 {
-    grid-column: span 12 / span 12 !important;
+  /* Layout Adjustments */
+  #root {
+    width: 100%;
+    max-width: none;
   }
 
-  /* Clean up Cards */
-  .bg-white,
+  /* Force Light Mode Colors for Containers */
+  .dark\:bg-slate-950,
+  .dark\:bg-slate-900,
   .dark\:bg-slate-800,
-  .dark\:bg-slate-900 {
-    background: white !important;
-    border: 1px solid #ddd !important;
-    box-shadow: none !important;
-    color: black !important;
+  .bg-slate-950,
+  .bg-slate-900 {
+    background-color: white !important;
+    border-color: #e2e8f0 !important; /* slate-200 */
+    color: #1e293b !important;
   }
 
-  /* Text Colors - Force black for print */
-  * {
-    color: black !important;
-  }
+  /* Preserve Semantic Colors (Emerald/Rose/Indigo) */
+  .text-emerald-400, .dark\:text-emerald-400 { color: #059669 !important; } /* emerald-600 */
+  .text-rose-400, .dark\:text-rose-400 { color: #e11d48 !important; } /* rose-600 */
+  .text-indigo-400, .dark\:text-indigo-400 { color: #4f46e5 !important; } /* indigo-600 */
+  
+  .bg-emerald-950\/30, .dark\:bg-emerald-950\/30 { background-color: #ecfdf5 !important; border-color: #10b981 !important; } /* emerald-50 */
+  .bg-rose-950\/20, .dark\:bg-rose-950\/20 { background-color: #fff1f2 !important; border-color: #f43f5e !important; } /* rose-50 */
 
-  /* Ensure charts print */
-  .bg-emerald-500\/20 {
-    background-color: #d1fae5 !important;
-    -webkit-print-color-adjust: exact;
-  }
-
-  .bg-rose-500\/20 {
-    background-color: #ffe4e6 !important;
-    -webkit-print-color-adjust: exact;
+  /* Ensure Cards have borders */
+  .border-slate-800 {
+    border-color: #cbd5e1 !important; /* slate-300 */
   }
 
   /* Hide scrollbars */
